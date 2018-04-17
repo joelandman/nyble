@@ -1,0 +1,27 @@
+all:	osraid osfs mount
+
+
+
+osraid:
+	./partition_disks.pl > osraid
+	
+osfs:	osraid	
+	mkfs.ext4 -m 10 /dev/md0
+#	mkfs.ext4 -m 10 /dev/md1
+	#mkswap /dev/md2
+	#swapon -a /dev/md2
+	touch osfs
+
+
+mount:	osfs
+	mkdir -p /mnt/root
+	mount /dev/md0 /mnt/root
+	touch mount
+	
+clean:
+	rm -f osraid osfs mount
+
+removeswraid:
+	#umount /mnt/root
+	mdadm -S /dev/md?
+	mdadm --zero-superblock /dev/sd*

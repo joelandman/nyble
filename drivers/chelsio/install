@@ -1,0 +1,28 @@
+#!/bin/bash -x
+
+# Chelsio driver info
+CHELSIO_REV=3.6.0.3
+CHELSIO=ChelsioUwire-${CHELSIO_REV}
+CHELSIO_TARBALL=${CHELSIO}.tar.gz
+
+export KV=`dpkg -l  | grep linux-image- | grep -v meta | perl -lane 'print $F[1] =~ /linux-image-(.*)/'`
+export KSV=`echo ${KV} | perl -lane 'printf $F[0] =~ /^(\d+\.\d+)/'`
+
+echo KSV = ${KSV}
+KP=/usr/src/linux-source-${KSV}
+echo KP = ${KP}
+
+# 1st install Chelsio driver
+
+tar -zxf ${CHELSIO_TARBALL}
+cd ${CHELSIO}
+make install KDIR=/lib/modules/${KV}/build
+
+# 2nd Install anything else that needs to be installed
+
+ldconfig -v
+
+# 3rd clean up extraneous stuff (docs, etc.)
+#rm -rf 
+
+

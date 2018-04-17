@@ -1,0 +1,75 @@
+#!/bin/sh -x
+PREREQ=""
+prereqs()
+{
+     echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+     prereqs
+     exit 0
+     ;;
+esac
+
+if (grep -q break=preunpack /proc/cmdline); then
+  echo "honoring break=preunpack kernel arg"
+  /bin/sh
+fi
+
+if (grep -q debug /proc/cmdline); then
+env
+fi
+
+if (grep -q rootfstype=ramdisk /proc/cmdline); then
+
+	echo  "Creating and mounting ramdisk"
+	mkdir -p ${rootmnt}
+
+	if (grep -q ramdisksize= /proc/cmdline); then
+			RAMDISKSIZE=${ramdisksize}
+		else
+			RAMDISKSIZE=8G
+	fi
+	echo "ramdisk size set to " ${RAMDISKSIZE}
+
+	if (grep -q ramdisk=zram /proc/cmdline); then
+	 modprobe -v zram num_devices=1
+	 echo ${RAMDISKSIZE} > /sys/block/zram0/disksize
+	 echo ${RAMDISKSIZE} > /sys/block/zram0/mem_limit
+	 mkfs.ext4 -q -m 0 -b 4096 -O sparse_super,dir_index,extent -L root /dev/zram0
+	 mount -o relatime -t ext4 /dev/zram0 ${rootmnt}
+	else
+	 mount -t tmpfs -o size=${RAMDISKSIZE}G,mode=0755 tmpfs ${rootmnt}
+	fi
+ 	echo
+
+	echo "Unpacking file system into ramdisk"
+	cd ${rootmnt}
+        #/bin/pxz -dc /nyble_snap.tar.xz | /bin/tar -xS -C ${rootmnt}
+	/bin/tar -I /bin/pbzip2 -xSf  /nyble_snap.tar.bz2 -C ${rootmnt}
+	#/bin/tar -I /bin/pxz -xSf  /nyble_snap.tar.xz -C ${rootmnt}
+  echo
+
+	if (grep -q image=keep /proc/cmdline); then
+		echo "keeping image"
+	else
+		echo "Removing image"
+	  rm -f  /nyble_snap.tar*
+	  echo
+	fi
+
+	echo "Make sys proc dev"
+	mkdir -p ${rootmnt}/proc
+	mkdir -p ${rootmnt}/sys
+	mkdir -p ${rootmnt}/dev
+	echo
+fi
+
+if (grep -q break=postunpack /proc/cmdline); then
+  echo "honoring break=postunpack kernel arg"
+  /bin/sh
+fi
+
+
+exit 0

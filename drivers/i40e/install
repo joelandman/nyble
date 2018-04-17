@@ -1,0 +1,7 @@
+#!/bin/bash
+
+VER=2.4.6
+export KV=`dpkg -l  | grep linux-image- | grep -v meta | perl -lane 'print $F[1] =~ /linux-image-(.*)/'`
+tar -zxvf i40e-$VER.tar.gz
+cd i40e-$VER/src
+make KSRC=/usr/src/linux-headers-${KV} install
