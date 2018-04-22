@@ -117,6 +117,8 @@ endif
 ifeq ($(DISTRO),centos7)
 	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1 
 	cp OS/${DISTRO}/dracut-functions.sh ${TARGET}/usr/lib/dracut/dracut-functions.sh
+	chroot ${TARGET} yum clean all
+	rm -rf ${TARGET}/var/cache/yum
 	chroot ${TARGET} /usr/sbin/dracut -v --force --regenerate-all
 endif
 endif

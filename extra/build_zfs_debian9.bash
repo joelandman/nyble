@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-EXPORT _SPL=0.6.4.2
-EXPORT _ZFS=0.6.4.2
-EXPORT _arch=arch
+export _SPL=0.6.4.2
+export _ZFS=0.6.4.2
+export _arch=arch
 
 # spl
 tar -zxf spl-${_SPL}.tar.gz
