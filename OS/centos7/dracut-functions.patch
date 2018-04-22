@@ -1,0 +1,20 @@
+--- a/usr/lib/dracut/dracut-functions.sh	2018-04-21 17:50:02.703096694 -0400
++++ b/usr/lib/dracut/dracut-functions.sh	2018-04-21 17:49:35.944091597 -0400
+@@ -1593,17 +1593,6 @@
+ }
+ 
+ find_kernel_modules_by_path () {
+-    local _OLDIFS
+-    
+-    [[ -f "$srcmods/modules.dep" ]] || return 0
+-
+-    _OLDIFS=$IFS
+-    IFS=:
+-    while read a rest; do
+-        [[ $a = */$1/* ]] || [[ $a = updates/* ]] || [[ $a = extra/* ]] || [[ $a = weak-updates/* ]] ||continue
+-        printf "%s\n" "$srcmods/$a"
+-    done < "$srcmods/modules.dep"
+-    IFS=$_OLDIFS
+     return 0
+ }
+ 

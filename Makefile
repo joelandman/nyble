@@ -3,7 +3,7 @@
 #
 
 # by default, build complete system
-ONLYCORE ?= 0
+ONLYCORE?=0
 # alternative, comment above line out, and uncomment below to build
 # minimum system
 #ONLYCORE ?= 1
@@ -22,9 +22,9 @@ finalizebase: osinst fb_last
 	touch finalizebase
 
 
-DISTRO=debian9
+#DISTRO=debian9
 #DISTRO=ubuntu16.04
-#DISTRO=centos7
+DISTRO=centos7
 #DISTRO=rhel7
 
 
@@ -94,11 +94,6 @@ endif
 		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
 		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
 		run  sbin  srv sys tmp  usr  var
-	#rm -f /mnt/nyble_snap.tar.bz2
-	#pbzip2 -9 /mnt/nyble_snap.tar
-	#mv -fv /mnt/nyble_snap.tar.bz2 ${TARGET}
-	#rm -f /mnt/nyble_snap.tar.xz
-	#pxz -v /mnt/nyble_snap.tar
 	mv -fv /mnt/nyble_snap.tar.bz2 ${TARGET}
 endif
 	touch ramdisk_build_3
@@ -106,6 +101,7 @@ endif
 ramdisk_build_final: ramdisk_build_3
 ifndef PHYSICAL
 	# for ramdisk based booting
+ifeq ($(DISTRO),debian9)
 	cp nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
 	cp tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
 	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
@@ -117,11 +113,20 @@ ifndef PHYSICAL
 	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
 	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
 endif
+
+ifeq ($(DISTRO),centos7)
+	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1 
+	cp OS/${DISTRO}/dracut-functions.sh ${TARGET}/usr/lib/dracut/dracut-functions.sh
+	chroot ${TARGET} /usr/sbin/dracut -v --force --regenerate-all
+endif
+endif
 	#
 	# remove the policy bits now to allow ramdisk and other services to rebuild
 	rm -f ${TARGET}/usr/sbin/policy-rc.d
 	#
+ifeq ($(DISTRO),debian9)
 	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o /boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
+endif
 	touch ramdisk_build_final
 
 
