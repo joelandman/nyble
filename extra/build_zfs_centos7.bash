@@ -16,7 +16,7 @@ cd ../
 
 # zfs
 tar -zxf zfs-${_ZFS}.tar.gz
-cd spl-${_ZFS}
+cd zfs-${_ZFS}
 ./configure
 make -j8
 make install
