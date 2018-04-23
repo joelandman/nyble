@@ -60,7 +60,7 @@ ifndef PHYSICAL
 	echo TARGET = ${TARGET}
 	mkdir -p ${TARGET}
 	touch /mnt/nyble_snap.tar
-	mount -o size=32g -t tmpfs none ${TARGET}
+	mount -o size=24g -t tmpfs none ${TARGET}
 endif
 	touch ramdisk_build_1
 
