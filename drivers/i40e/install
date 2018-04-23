@@ -1,7 +1,27 @@
 #!/bin/bash
 
 VER=2.4.6
+
+if [ -e "/etc/debian_version" ]; then
 export KV=`dpkg -l  | grep linux-image- | grep -v meta | perl -lane 'print $F[1] =~ /linux-image-(.*)/'`
+export KSV=`echo ${KV} | perl -lane 'printf $F[0] =~ /^(\d+\.\d+)/'`
+export KP=/usr/src/linux-source-${KSV}
+fi
+
+if [ -e "/etc/redhat-release" ]; then
+export KV=`rpm -qa | grep kernel | grep -v devel | grep -v headers | grep -v tools | perl -pe 's/kernel-(.*?)-1.x86_64/$1/'`
+export KSV=`echo ${KV} | perl -lane 'printf $F[0] =~ /^(\d+\.\d+)/'`
+export KP=/usr/src/kernels/${KV}
+fi
+
+echo KSV = ${KSV}
+echo KP  = ${KP}
+echo KV  = ${KV}
+
 tar -zxvf i40e-$VER.tar.gz
+pushd .
+
 cd i40e-$VER/src
-make KSRC=/usr/src/linux-headers-${KV} install
+make KSRC=${KP} install
+
+popd

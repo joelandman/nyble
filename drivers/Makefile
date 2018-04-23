@@ -1,3 +1,4 @@
+TARGET ?= "/mnt/root"
 
 drivers = $(shell find . -type d | grep -v "\.$")
 
@@ -17,7 +18,7 @@ $(build):
 	done
 
 %.complete: %.build     
-	cd $* ; ./install
+	cd $* ; cp -vf * ${TARGET}/root;  chroot ${TARGET} /root/install
 	touch $*.complete
 
 clean:  

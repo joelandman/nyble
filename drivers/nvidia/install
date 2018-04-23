@@ -1,5 +1,5 @@
 #!/bin/bash -x
-
+exit
 # current CUDA generation
 NVDRVVER=390.25
 CUDNNVER=7
