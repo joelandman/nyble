@@ -18,10 +18,13 @@ echo KSV = ${KSV}
 echo KP  = ${KP}
 echo KV  = ${KV}
 
-tar -zxvf i40e-$VER.tar.gz
 pushd .
+cd /root
+tar -zxvf i40e-$VER.tar.gz
+
 
 cd i40e-$VER/src
 make KSRC=${KP} install
-
+cd ../..
+rm -rf i40e* install
 popd

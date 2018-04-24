@@ -33,7 +33,8 @@ mv ${CXGB4} ${CXGB4}.original
 pushd .
 mkdir -p /tmp/cxgb
 cd /tmp/cxgb
-wget ${CHELSIO_URL}
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+curl ${CHELSIO_URL} > ${CHELSIO_TARBALL}
 tar -zxf ${CHELSIO_TARBALL}
 
 cd ${CHELSIO}
@@ -43,7 +44,7 @@ patch -p2 < ${CHELSIO_PATCH}
 
 # NIC
 make nic KDIR=/lib/modules/${KV}/build KVER=${KV}
-cp -fv `find | grep cxgb4.ko$` ${CXGB4}a
+cp -fv `find | grep cxgb4.ko$` ${CXGB4}
 
 
 # TOOLS
@@ -51,16 +52,19 @@ make tools KDIR=/lib/modules/${KV}/build KVER=${KV}
 cp ./build/tools/cxgbtool/cxgbtool /usr/local/bin
 
 # FW
-#rm -rf /lib/firmware/cxgb4
-#mkdir  /lib/firmware/cxgb4
-#cp -rv ./src/network/firmware/* /lib/firmware/cxgb4
+rm -rf /lib/firmware/cxgb4
+mkdir  /lib/firmware/cxgb4
+cp -rv ./src/network/firmware/* /lib/firmware/cxgb4
+cd /lib/firmware/cxgb4
+ln -s t4fw-*.bin t4fw.bin
+ln -s t5fw-*.bin t5fw.bin
+ln -s t6fw-*.bin t6fw.bin
 
 
-depmod -a
-
+depmod -a ${KV}
 
 # 3rd clean up extraneous stuff (docs, etc.)
 popd 
-rm -rf /tmp/cxgb
+rm -rf /tmp/cxgb ${CHELSIO_PATCH} /root/install /root/kv.data
 
 

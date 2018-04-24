@@ -139,6 +139,7 @@ ramdisk_build_last:	ramdisk_build_final
 clean:
 	rm -f osinst finalizebase fb_* osinst_* ramdisk_build_* /mnt/nyble_snap.tar* \
 		ramdisk_build_* kernel.data
+	cd drivers ; $(MAKE) clean
 	$(shell umount ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
 	umount -l -f ${TARGET}
 
