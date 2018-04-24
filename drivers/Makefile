@@ -1,6 +1,6 @@
-TARGET ?= "/mnt/root"
+TARGET ?= /mnt/root
 
-drivers = $(shell find . -type d | grep -v "\.$")
+drivers = $(shell find . -type d | sed 's|^.||g' |sed 's|^/||g'  )
 
 
 ### The below are the mechanisms used to create build targets, completed 
@@ -23,7 +23,6 @@ $(build):
 
 clean:  
 	for p in $(drivers) ; do \
-	  $(MAKE) -f Makefile.$$p clean ; \
 	  rm -f $$p.build $$p.drivers $$p.complete ; \
 	done
 
