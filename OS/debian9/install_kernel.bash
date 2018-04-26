@@ -17,7 +17,7 @@ if [[ $NK -eq 1 ]]; then
 	wget -c ${KERNEL_URL}/linux-headers-${KERNEL_VERSION}_${KERNEL_VERSION}-1_amd64.deb
 	wget -c ${KERNEL_URL}/linux-libc-dev_${KERNEL_VERSION}-1_amd64.deb
 	wget -c ${KERNEL_URL}/linux-image-${KERNEL_VERSION}_${KERNEL_VERSION}-1_amd64.deb
-	wget -c ${KERNEL_URL}/linux-source-${KV}.tar.gz
+	#wget -c ${KERNEL_URL}/linux-source-${KV}.tar.gz
 	dpkg --root=${TARGET} -i ${TARGET}/root/k/*.deb
 	popd
 
@@ -29,20 +29,22 @@ if [[ $NK -eq 1 ]]; then
 
 	# now build/install perf and friends
 	export DEBIAN_FRONTEND=noninteractive ;  chroot ${TARGET} apt-get -y install \
-	 			libgtk2.0-dev libslang2-dev libperl-dev libpython-dev libelf-dev 			 \
-				python-dev libiberty-dev libdw-dev libbfd-dev perf-tools-unstable
-	tar -zxf ${TARGET}/root/k/linux-source-${KV}.tar.gz -C  ${TARGET}/root/k
+		libgtk2.0-dev libslang2-dev libperl-dev libpython-dev libelf-dev     \
+		python-dev libiberty-dev libdw-dev libbfd-dev perf-tools-unstable
+	#tar -zxf ${TARGET}/root/k/linux-source-${KV}.tar.gz -C  ${TARGET}/usr/src
 
 	/bin/rm -f ${TARGET}/root/k/*.deb  ${TARGET}/root/linux-source-${KV}.tar.gz
 	echo KV=${KV} > ${TARGET}/root/kv.data
 	
-	chroot ${TARGET} /root/install_perf.bash
-	rm -rf ${TARGET}/root/install_perf.bash
+	#chroot ${TARGET} /root/install_perf.bash
+	chroot ${TARGET} /root/prepare_modbuild.bash
+	rm -f ${TARGET}/root/install_perf.bash
 	rm -rf ${TARGET}/root/k
+	
 
 else
-	export DEBIAN_FRONTEND=noninteractive ; chroot ${TARGET} apt-get -y install \
-				linux-base linux-image-amd64 initramfs-tools libgtk2.0-dev 						\
-				libslang2-dev libperl-dev libpython-dev libelf-dev python-dev 				\
-				libiberty-dev libdw-dev libbfd-dev
+	export DEBIAN_FRONTEND=noninteractive ; chroot ${TARGET} apt-get -y \
+		install linux-base linux-image-amd64 initramfs-tools        \
+		libgtk2.0-dev libslang2-dev libperl-dev libpython-dev       \
+		libelf-dev python-dev libiberty-dev libdw-dev libbfd-dev
 fi

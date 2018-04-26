@@ -19,6 +19,7 @@ $(build):
 
 %.complete: %.build     
 	cd $* ; cp -vf * ${TARGET}/root;  chroot ${TARGET} /root/install
+	rm -f ${TARGET}/root/install
 	touch $*.complete
 
 clean:  

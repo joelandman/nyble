@@ -3,10 +3,10 @@
 #
 
 # by default, build complete system
-ONLYCORE?=0
+ONLYCORE=0
 # alternative, comment above line out, and uncomment below to build
 # minimum system
-#ONLYCORE ?= 1
+#ONLYCORE=1
 
 ### default build target
 ifndef TARGET
@@ -22,9 +22,9 @@ finalizebase: osinst fb_last
 	touch finalizebase
 
 
-#DISTRO=debian9
+DISTRO=debian9
 #DISTRO=ubuntu16.04
-DISTRO=centos7
+#DISTRO=centos7
 #DISTRO=rhel7
 
 
@@ -139,7 +139,8 @@ ramdisk_build_last:	ramdisk_build_final
 clean:
 	rm -f osinst finalizebase fb_* osinst_* ramdisk_build_* /mnt/nyble_snap.tar* \
 		ramdisk_build_* kernel.data
-	cd drivers ; $(MAKE) clean
+	cd drivers  ; $(MAKE) clean
+	cd packages ; $(MAKE) clean
 	$(shell umount ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
 	umount -l -f ${TARGET}
 

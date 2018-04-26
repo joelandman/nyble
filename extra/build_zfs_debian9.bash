@@ -1,28 +1,25 @@
 #!/usr/bin/env bash
 
-export _SPL=0.6.4.2
-export _ZFS=0.6.4.2
+export _SPL=0.7.8
+export _ZFS=0.7.8
 export _arch=arch
 
+apt-get -y install uuid-dev libblkid-dev libattr1-dev
+
+cd /root/zfs
 # spl
 tar -zxf spl-${_SPL}.tar.gz
 cd spl-${_SPL}
 ./configure
-make deb-utils deb-kmod
-dpkg -i kmod-spl-devel-${_SPL}.${_arch}.deb \
-	kmod-spl-devel-kernel-${_SPL}.${_arch}.deb \
-	kmod-spl-kernel-${_SPL}.${_arch}.deb \
-	spl--${_SPL}.${_arch}.deb
-
+make -j8
+make install
 
 cd ../
 
 # zfs
-tar -zxf spl-${_ZFS}.tar.gz
+tar -zxf zfs-${_ZFS}.tar.gz
+cd zfs-${_ZFS}
 ./configure
-make deb-utils deb-kmod
-dpkg -i kmod-zfs-kernel-${_ZFS}.${_arch}.deb \
-	kmod-zfs-devel-${_ZFS}.${_arch}.deb  \
-	kmod-zfs-devel-kernel-${_ZFS}.${_arch}.deb
-
+make -j8
+make install
 
