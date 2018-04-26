@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+INSTALL_DRIVER=0
+INSTALL_FIRMWARE=1
+
 # Chelsio driver info
 CHELSIO_REV=3.7.0.2
 CHELSIO=ChelsioUwire-${CHELSIO_REV}
@@ -27,8 +30,10 @@ echo KP  = ${KP}
 echo KV  = ${KV}
 # 1st install Chelsio driver
 
+if [ ${INSTALL_DRIVER} -eq 1]; then
 export CXGB4=`find /lib/modules | grep cxgb4.ko`
 mv ${CXGB4} ${CXGB4}.original
+fi
 
 pushd .
 mkdir -p /tmp/cxgb
@@ -42,24 +47,29 @@ cd ${CHELSIO}
 # have to apply patch!, or it won't build for 4.14 and beyond.
 patch -p2 < ${CHELSIO_PATCH}
 
+if [ ${INSTALL_DRIVER} -eq 1 ]; then
 # NIC
 make nic KDIR=/lib/modules/${KV}/build KVER=${KV}
 cp -fv `find | grep cxgb4.ko$` ${CXGB4}
-
+fi
 
 # TOOLS
 make tools KDIR=/lib/modules/${KV}/build KVER=${KV}
 cp ./build/tools/cxgbtool/cxgbtool /usr/local/bin
 
+if [ ${INSTALL_FIRMWARE} -eq 1 ]; then
 # FW
-rm -rf /lib/firmware/cxgb4
-mkdir  /lib/firmware/cxgb4
+pushd .
+cd /lib/firmware 
+rm -rf cxgb4
+popd
+mkdir -p /lib/firmware/cxgb4
 cp -rv ./src/network/firmware/* /lib/firmware/cxgb4
 cd /lib/firmware/cxgb4
 ln -s t4fw-*.bin t4fw.bin
 ln -s t5fw-*.bin t5fw.bin
 ln -s t6fw-*.bin t6fw.bin
-
+fi
 
 depmod -a ${KV}
 

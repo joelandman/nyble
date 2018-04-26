@@ -1,5 +1,7 @@
+TARGET ?= /mnt/root
 
-packages = $(shell find . -type d | grep -v "\.$") 
+packages = $(shell find . -type d | sed 's|^.||g' |sed 's|^/||g'  )
+
 
 ### The below are the mechanisms used to create build targets, completed 
 ### build targets, and clean up.
@@ -15,14 +17,21 @@ $(build):
 	  touch $$p.build ;	\
 	done
 
-%.complete: %.build     
-	cd $* ; ./install
+%.complete: %.build
+	mkdir -p  ${TARGET}/root/x
+	cd $* ; cp -vf * ${TARGET}/root/x;  chroot ${TARGET} /root/x/install
+	rm -rf ${TARGET}/root/x
 	touch $*.complete
 
 clean:  
 	for p in $(packages) ; do \
-	  $(MAKE) -f Makefile.$$p clean ; \
 	  rm -f $$p.build $$p.packages $$p.complete ; \
 	done
+
+###################################################
+## debugging targets
+
+print-%  : ; @echo $* = $($*)
+# use as "make print-VARIABLE_NAME" to see variable name
 
 
