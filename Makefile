@@ -76,9 +76,9 @@ endif
 	mkdir -p ${TARGET}/opt/nyble/bin
 	cp -fv scripts/*.pl  ${TARGET}/opt/nyble/bin
 	chmod +x ${TARGET}/opt/nyble/bin/*.pl
-	for i in `ls scripts/*.pl`; do  \
-	  chroot ${TARGET} ln -s /opt/nyble/bin/$i /usr/bin/$i ; \
-	done
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsnet.pl /usr/bin/lsnet.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsbond.pl /usr/bin/lsbond.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsbr.pl /usr/bin/lsbr.pl
 
 	touch ramdisk_build_2
 
@@ -111,12 +111,13 @@ ramdisk_build_final: ramdisk_build_3
 ifndef PHYSICAL
 	# for ramdisk based booting
 ifeq ($(DISTRO),debian9)
-	cp OS/debian9/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp OS/debian9/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	cp -vf OS/debian9/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	cp -vf OS/debian9/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
 	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
 	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
 	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp OS/debian9/ramboot.initramfs ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
+	cp -vf OS/debian9/ramboot.initramfs \
+		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 
 	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
@@ -124,8 +125,9 @@ ifeq ($(DISTRO),debian9)
 endif
 
 ifeq ($(DISTRO),centos7)
-	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1 
-	cp OS/${DISTRO}/dracut-functions.sh ${TARGET}/usr/lib/dracut/dracut-functions.sh
+	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1
+	cp -fv OS/${DISTRO}/dracut-functions.sh \
+		${TARGET}/usr/lib/dracut/dracut-functions.sh
 	chroot ${TARGET} yum clean all
 	rm -rf ${TARGET}/var/cache/yum
 	chroot ${TARGET} /usr/sbin/dracut -v --force --regenerate-all
@@ -136,7 +138,8 @@ endif
 	rm -f ${TARGET}/usr/sbin/policy-rc.d
 	#
 ifeq ($(DISTRO),debian9)
-	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o /boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
+	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
+		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
 endif
 	touch ramdisk_build_final
 

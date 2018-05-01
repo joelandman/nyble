@@ -174,6 +174,7 @@ case "$1" in
 	   if (grep -q br_if= /proc/cmdline); then
                 br_if=$(/opt/nyble/bin/get_cmdline_key.pl br_if)
 		brctl addif $br_name $br_if
+		ifconfig $br_if up
            fi
 
            if (grep -q br_addr= /proc/cmdline); then
