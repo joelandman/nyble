@@ -1,0 +1,5 @@
+ramboot,"booting Linux onto ramdisk with DHCP network","root=ram rootfstype=ramdisk console=tty0 console=ttyS1,115200n8 verbose net.ifnames=0  udev.children-max=1 simplenet=1"
+zramboot,"booting Linux onto compressed ramdisk with DHCP network","root=ram rootfstype=ramdisk ramdisk=zram console=tty0 console=ttyS1,115200n8 verbose net.ifnames=0  udev.children-max=1 simplenet=1"
+brramboot0,"booting Linux onto ramdisk with bridged DHCP network on eth0","root=ram rootfstype=ramdisk console=tty0 console=ttyS1,115200n8 verbose net.ifnames=0 br_name=br0 br_if=eth0 udev.children-max=1"
+brramboot1,"booting Linux onto ramdisk with bridged DHCP network on eth1","root=ram rootfstype=ramdisk console=tty0 console=ttyS1,115200n8 verbose net.ifnames=0 br_name=br0 br_if=eth1 udev.children-max=1"
+
