@@ -72,10 +72,11 @@ ifndef PHYSICAL
 	chroot ${TARGET} systemctl mask systemd-udev-settle
 endif
 
-	# place get_cmdline_key.pl where it needs to be for startup
+	# place scripts where they need to be for startup
 	mkdir -p ${TARGET}/opt/nyble/bin
-	cp get_cmdline_key.pl -p ${TARGET}/opt/nyble/bin
-	chmod +x ${TARGET}/opt/nyble/bin/get_cmdline_key.pl
+	cp -fv scripts/*.pl  ${TARGET}/opt/nyble/bin
+	chmod +x ${TARGET}/opt/nyble/bin/*.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/*.pl /usr/bin
 
 	touch ramdisk_build_2
 
