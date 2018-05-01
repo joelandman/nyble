@@ -102,12 +102,12 @@ ramdisk_build_final: ramdisk_build_3
 ifndef PHYSICAL
 	# for ramdisk based booting
 ifeq ($(DISTRO),debian9)
-	cp nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	cp OS/debian9/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	cp OS/debian9/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
 	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
 	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
 	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp ramboot.initramfs ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
+	cp OS/debian9/ramboot.initramfs ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 
 	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local

@@ -29,14 +29,14 @@ if (grep -q rootfstype=ramdisk /proc/cmdline); then
 	if (grep -q ramdisksize= /proc/cmdline); then
 			RAMDISKSIZE=${ramdisksize}
 		else
-			RAMDISKSIZE=8G
+			RAMDISKSIZE=8
 	fi
 	echo "ramdisk size set to " ${RAMDISKSIZE}
 
 	if (grep -q ramdisk=zram /proc/cmdline); then
 	 modprobe -v zram num_devices=1
-	 echo ${RAMDISKSIZE} > /sys/block/zram0/disksize
-	 echo ${RAMDISKSIZE} > /sys/block/zram0/mem_limit
+	 echo ${RAMDISKSIZE}G > /sys/block/zram0/disksize
+	 echo ${RAMDISKSIZE}G > /sys/block/zram0/mem_limit
 	 mkfs.ext4 -q -m 0 -b 4096 -O sparse_super,dir_index,extent -L root /dev/zram0
 	 mount -o relatime -t ext4 /dev/zram0 ${rootmnt}
 	else
@@ -46,9 +46,7 @@ if (grep -q rootfstype=ramdisk /proc/cmdline); then
 
 	echo "Unpacking file system into ramdisk"
 	cd ${rootmnt}
-        #/bin/pxz -dc /nyble_snap.tar.xz | /bin/tar -xS -C ${rootmnt}
 	/bin/tar -I /bin/pbzip2 -xSf  /nyble_snap.tar.bz2 -C ${rootmnt}
-	#/bin/tar -I /bin/pxz -xSf  /nyble_snap.tar.xz -C ${rootmnt}
   echo
 
 	if (grep -q image=keep /proc/cmdline); then
