@@ -1,0 +1,9 @@
+#!/bin/bash -x
+
+cd /root/x
+tar -zxvf Data-Utils.tar.gz
+cd Data-Utils
+perl Makefile.PL
+make 
+make test
+make install

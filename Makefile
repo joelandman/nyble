@@ -76,7 +76,9 @@ endif
 	mkdir -p ${TARGET}/opt/nyble/bin
 	cp -fv scripts/*.pl  ${TARGET}/opt/nyble/bin
 	chmod +x ${TARGET}/opt/nyble/bin/*.pl
-	chroot ${TARGET} ln -s /opt/nyble/bin/*.pl /usr/bin
+	for i in `ls scripts/*.pl`; do  \
+	  chroot ${TARGET} ln -s /opt/nyble/bin/$i /usr/bin/$i ; \
+	done
 
 	touch ramdisk_build_2
 
