@@ -146,6 +146,69 @@ case "$1" in
 	   ${DHCLIENT} -v  $ports
 	fi
 
+	#set specific network IP/mask, DNS, default GW
+	if (grep -q net_if= /proc/cmdline); then
+           net_if=$(/opt/nyble/bin/get_cmdline_key.pl net_if)
+           if (grep -q net_addr= /proc/cmdline); then
+		net_addr=$(/opt/nyble/bin/get_cmdline_key.pl net_addr)
+		ifconfig $net_if $net_addr up
+	      else
+		dhclient -x
+		sleep 2
+		dhclient -v $net_if
+	   fi
+           if (grep -q net_dns= /proc/cmdline); then
+                net_dns=$(/opt/nyble/bin/get_cmdline_key.pl net_dns)
+		echo "nameserver $net_dns" > /etc/resolv.conf
+           fi
+           if (grep -q net_gw= /proc/cmdline); then
+                net_gw=$(/opt/nyble/bin/get_cmdline_key.pl net_gw)
+		route add default gw $net_gw
+           fi
+        fi
+
+        #bridge control:  set specific network IP/mask, DNS, default GW, bridge ports
+        if (grep -q br_name= /proc/cmdline); then
+           br_name=$(/opt/nyble/bin/get_cmdline_key.pl br_name)
+	   brctl addbr $br_name
+	   if (grep -q br_if= /proc/cmdline); then
+                br_if=$(/opt/nyble/bin/get_cmdline_key.pl br_if)
+		brctl addif $br_name $br_if
+           fi
+
+           if (grep -q br_addr= /proc/cmdline); then
+                net_addr=$(/opt/nyble/bin/get_cmdline_key.pl net_addr)
+                ifconfig $net_if $net_addr up
+              else
+                dhclient -x
+                sleep 2
+                dhclient -v $net_if
+           fi
+
+           if (grep -q net_dns= /proc/cmdline); then
+                net_dns=$(/opt/nyble/bin/get_cmdline_key.pl net_dns)
+                echo "nameserver $net_dns" > /etc/resolv.conf
+           fi
+	   
+           if (grep -q net_gw= /proc/cmdline); then
+                net_gw=$(/opt/nyble/bin/get_cmdline_key.pl net_gw)
+                route add default gw $net_gw
+           fi
+
+           if (grep -q br_stp= /proc/cmdline); then
+                br_stp=$(/opt/nyble/bin/get_cmdline_key.pl br_stp)
+		brctl stp $br_name $br_stp                
+           fi
+
+           if (grep -q br_fd= /proc/cmdline); then
+                br_fd=$(/opt/nyble/bin/get_cmdline_key.pl br_fd)
+                brctl setfd $br_name $br_stp
+           fi
+
+
+        fi
+
+
 	# grab rootpw= if it exists
 	if (grep -q rootpw= /proc/cmdline); then
 	   rootpw=$(/opt/nyble/bin/get_cmdline_key.pl rootpw)
