@@ -73,9 +73,10 @@ ifndef PHYSICAL
 endif
 
 	# place get_cmdline_key.pl where it needs to be for startup
-	mkdir -p ${TARGET}/opt/nlytiq/bin
-	cp get_cmdline_key.pl -p ${TARGET}/opt/nlytiq/bin
-	chmod +x ${TARGET}/opt/nlytiq/bin/get_cmdline_key.pl
+	mkdir -p ${TARGET}/opt/nyble/bin
+	cp get_cmdline_key.pl -p ${TARGET}/opt/nyble/bin
+	chmod +x ${TARGET}/opt/nyble/bin/get_cmdline_key.pl
+
 	touch ramdisk_build_2
 
 

@@ -178,11 +178,11 @@ case "$1" in
 
            if (grep -q br_addr= /proc/cmdline); then
                 net_addr=$(/opt/nyble/bin/get_cmdline_key.pl net_addr)
-                ifconfig $net_if $net_addr up
+                ifconfig $br_name $net_addr up
               else
                 dhclient -x
                 sleep 2
-                dhclient -v $net_if
+                dhclient -v $br_name
            fi
 
            if (grep -q net_dns= /proc/cmdline); then
