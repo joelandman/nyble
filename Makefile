@@ -15,6 +15,24 @@ endif
 
 all:	finalizebase ramdisk_build_final
 
+usb:	finalizebase ramdisk_build_final
+	# assume an (at least) 4GB USB drive
+	dd if=/dev/zero of=${TARGET}/nyble.usb bs=1G count=4
+	losetup /dev/loop3 ${TARGET}/nyble.usb
+	parted /dev/loop3 mklabel msdos
+	parted /dev/loop3 mkpart primary fat32 1MB 4GB
+	mkfs.fat /dev/loop3p1
+	syslinux -i /dev/loop3p1
+	dd conv=notrunc bs=440 count=1 if=usb/mbr.bin of=/dev/loop3
+	parted /dev/loop3 set 1 boot on
+	mkdir ${TARGET}/t
+	mount /dev/loop3p1 ${TARGET}/t
+	cp -vf ${TARGET}/boot/vmlinuz* ${TARGET}/boot/initramfs* ${TARGET}/t
+	cp usb/bootoptions usb/buildcfg.pl ${TARGET}/t
+	cd ${TARGET}/t ; cat bootoptions | ./buildcfg.pl  > syslinux.cfg
+	losetup -d /dev/loop3	
+	
+
 osinst: ramdisk_build_1 osinst_last
 	touch osinst
 
@@ -149,6 +167,7 @@ ramdisk_build_last:	ramdisk_build_final
 
 
 clean:
+	losetup -d /dev/loop3
 	rm -f osinst finalizebase fb_* osinst_* ramdisk_build_* /mnt/nyble_snap.tar* \
 		ramdisk_build_* kernel.data
 	cd drivers  ; $(MAKE) clean

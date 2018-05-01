@@ -203,7 +203,7 @@ case "$1" in
 
            if (grep -q br_fd= /proc/cmdline); then
                 br_fd=$(/opt/nyble/bin/get_cmdline_key.pl br_fd)
-                brctl setfd $br_name $br_stp
+                brctl setfd $br_name $br_fd
            fi
 
 
