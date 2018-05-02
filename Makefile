@@ -40,9 +40,9 @@ finalizebase: osinst fb_last
 	touch finalizebase
 
 
-DISTRO=debian9
+#DISTRO=debian9
 #DISTRO=ubuntu16.04
-#DISTRO=centos7
+DISTRO=centos7
 #DISTRO=rhel7
 
 
@@ -167,12 +167,12 @@ ramdisk_build_last:	ramdisk_build_final
 
 
 clean:
-	losetup -d /dev/loop3
 	rm -f osinst finalizebase fb_* osinst_* ramdisk_build_* /mnt/nyble_snap.tar* \
 		ramdisk_build_* kernel.data
 	cd drivers  ; $(MAKE) clean
 	cd packages ; $(MAKE) clean
 	$(shell umount ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
+	losetup -d /dev/loop3
 	umount -l -f ${TARGET}
 
 test_clean:
