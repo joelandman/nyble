@@ -9,14 +9,14 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 # skip non-ramdisk
 [ $root != "ram" ] && exit 0
 info "resizing ..."
-mount -o remount,size=4G /
-mount -o remount,size=4G /sys
-mount -o remount,size=4G /dev
-mount -o remount,size=4G /dev/shm
+mount -o remount,size=8G /
+mount -o remount,size=8G /sys
+mount -o remount,size=8G /dev
+mount -o remount,size=8G /dev/shm
 info " ... done resizing"
 
 info "preparing ramdisk:"
-MEMSIZE=4
+MEMSIZE=8
 
 
 info " - creating directory $NEWROOT"
