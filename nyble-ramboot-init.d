@@ -96,6 +96,30 @@ case "$1" in
 	     systemctl stop serial-getty@ttyS2.service
 	  fi
 
+	# use systemd networking controls ...
+	if (grep -q systemdnetwork=1 /proc/cmdline); then
+		systemctl enable network
+		systemctl start  network
+	fi
+
+	# scan for MD RAID devices and auto-generate an /etc/mdadm.conf
+        if (grep -q mdscan=1 /proc/cmdline); then
+		mdadm --examine --scan >> /tmp/mdadm.conf
+		cp -f /etc/mdadm.conf /etc/mdadm.conf.original
+		mkdir -p /etc/mdadm
+		rm -f /etc/mdadm/mdadm.conf /etc/mdadm.conf
+		mv /tmp/mdadm.conf /etc/mdadm/mdadm.conf
+		ln -s /etc/mdadm/mdadm.conf /etc/mdadm.conf
+		mdadm -As
+        fi
+
+        # use mdmonitor ...
+        if (grep -q enablemdmonitor=1 /proc/cmdline); then
+                systemctl enable mdmonitor
+                systemctl start  mdmonitor
+        fi
+
+
 
 	# use simplified networking if simplenet=1 is in boot commandline
 	# basically bring up each ethernet (eth*) and then see whom has a
@@ -269,7 +293,7 @@ case "$1" in
 	   exec chroot . /bin/bash -c 'umount -l /old_root ; /sbin/init 3 ' <dev/console >dev/console 2>&1
 	fi
 
-	# enablecloudinit=1 turns on cloud-init
+	# enablecloud-init=1 turns on cloud-init
 	if (grep -q enablecloudinit=1 /proc/cmdline); then
 	   systemctl enable cloud-init
 	   systemctl start cloud-init
@@ -286,6 +310,15 @@ case "$1" in
               systemctl enable lldpd
               systemctl start lldpd
         fi
+
+        # enablefirewalld=1 turns on firewalld
+        if (grep -q enablefirewalld=1 /proc/cmdline); then
+              systemctl enable firewalld
+              systemctl start firewalld
+        fi
+
+	
+
 
 	# zpoolimport=1 forces a zpool import
         if (grep -q zpoolimport= /proc/cmdline); then

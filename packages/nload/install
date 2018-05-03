@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ -e /etc/redhat-release ]; then
+
+	echo "native on CentOS"
+
+ else
+
+	yum install -y ncurses-devel
+	cd /root/x
+	tar -zxvf nload.tar.gz
+	cd nload
+	./run_autotools
+	./configure 
+	make -j4
+	make install
+
+fi
