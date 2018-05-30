@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-export _SPL=0.7.8
-export _ZFS=0.7.8
+export _SPL=0.7.9
+export _ZFS=0.7.9
 export _arch=arch
 
 cd /root/zfs
