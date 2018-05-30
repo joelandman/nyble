@@ -33,7 +33,7 @@ if (grep -q rootfstype=ramdisk /proc/cmdline); then
 	fi
 	echo "ramdisk size set to " ${RAMDISKSIZE}
 
-	if (grep -q ramdisk=zram /proc/cmdline); then
+	if (grep -q ramdisktype=zram /proc/cmdline); then
 	 modprobe -v zram num_devices=1
 	 echo ${RAMDISKSIZE}G > /sys/block/zram0/disksize
 	 echo ${RAMDISKSIZE}G > /sys/block/zram0/mem_limit
