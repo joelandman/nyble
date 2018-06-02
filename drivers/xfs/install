@@ -1,0 +1,28 @@
+#!/bin/bash
+
+VER=4.16.1
+pushd .
+cd /tmp
+mkdir x
+cd x
+
+wget https://mirrors.edge.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-${VER}.tar.gz
+
+if [ -e "/etc/debian_version" ]; then
+apt-get install -y uuid-dev libblkid-dev 
+fi
+
+if [ -e "/etc/redhat-release" ]; then
+yum install -y uuid-devel blkid-devel
+fi
+
+tar -zxvf xfsprogs-${VER}.tar.gz
+
+
+cd xfsprogs-${VER}
+./configure
+make -j8
+make install
+popd
+
+rm -rf /tmp/x
