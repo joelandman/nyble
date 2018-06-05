@@ -44,12 +44,10 @@ osinst: ramdisk_build_1 osinst_last
 finalizebase: osinst fb_last
 	touch finalizebase
 
-
-DISTRO=debian9
-#DISTRO=ubuntu16.04
-#DISTRO=centos7
-#DISTRO=rhel7
-
+#  pull in any additional config options
+include config/all.conf
+include kernel/kernel.conf
+include drivers/driver.conf
 
 #  define server URLs for major components
 include urls.conf
@@ -58,18 +56,8 @@ include urls.conf
 include OS/${DISTRO}/base.conf
 include OS/${DISTRO}/config.conf
 
-
-#  Select the kernel to use by modifying the kernel/kernel.conf file
-include kernel/kernel.conf
-
-#  place new drivers to install in the drivers/ directory
-include drivers/driver.conf
-
 #  place new packages to install in the packages/ directory
 include packages/packages.conf
-
-#  pull in any additional config options
-include config/all.conf
 
 
 
@@ -109,9 +97,11 @@ endif
 ramdisk_build_3:	ramdisk_build_2
 
 ifndef PHYSICAL
+ifneq ($(DISTRO),centos7)
 	umount -l ${TARGET}/dev
 	umount -l ${TARGET}/sys
 	umount -l ${TARGET}/proc
+endif
 	rm -f /mnt/nyble_snap.tar.xz
 ifeq ($(DISTRO),debian9)
 	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
@@ -120,12 +110,20 @@ ifeq ($(ONLYCORE),1)
 				 ${TARGET}/usr/share/doc
 endif
 endif
+ifeq ($(DISTRO),debian9)	
 	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
-		--exclude="^./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
-		--exclude="^./proc/*" \
+		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
+		--exclude="^./proc/*" --exclude="./dev/*"  \
 		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
 		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
 		run  sbin  srv sys tmp  usr  var
+endif
+ifeq ($(DISTRO),centos7)
+	rm -fr  ${TARGET}/var/cache/yum  ${TARGET}/usr/games 
+	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  \
+		bin boot data etc home lib lib64 media mnt opt root \
+		run sbin srv tmp usr var
+endif
 	mv -fv /mnt/nyble_snap.tar.bz2 ${TARGET}
 endif
 	touch ramdisk_build_3
