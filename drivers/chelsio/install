@@ -8,7 +8,7 @@ CHELSIO_REV=3.7.1.0
 CHELSIO=ChelsioUwire-${CHELSIO_REV}
 CHELSIO_TARBALL=${CHELSIO}.tar.gz
 #CHELSIO_URL=https://s3.amazonaws.com/nyble-binary-driver-blobs/${CHELSIO_TARBALL}
-CHELSIO_URL=http://calculon:10091/drivers/chelsio/${CHELSIO_TARBALL}
+CHELSIO_URL=http://192.168.5.250:10091/drivers/chelsio/${CHELSIO_TARBALL}
 CHELSIO_PATCH=/root/chelsio.4.15.patch
 
 ###
