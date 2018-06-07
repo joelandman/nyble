@@ -2,17 +2,6 @@
 #  This is the image building makefile.
 #
 
-# by default, build complete system
-ONLYCORE=0
-# alternative, comment above line out, and uncomment below to build
-# minimum system
-#ONLYCORE=1
-
-### default build target
-ifndef TARGET
-TARGET=/mnt/root
-endif
-
 all:	finalizebase ramdisk_build_final
 
 usbkey:	finalizebase ramdisk_build_final
