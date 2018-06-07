@@ -13,7 +13,7 @@ drift across your fleet.  It solves this by creating a fixed bootable initramfs
 artifact for a particular linux distribution.  The initramfs creation is driven
 by the Makefile in this repo.  
 
-Far more importantly, you should never have an errant driver or configuration stop a node from correctly booting.  You should always be able to come up to an operational state of an OS, and apply configuration 
+Far more importantly, you should never have an errant driver or configuration stop a node from correctly booting.  You should always be able to come up to an operational state of an OS, and apply configuration
 
 ## Theory of operation
 
@@ -22,19 +22,35 @@ specific configuration, tools, drivers, and packages that you may modify.
 One should be able to build an image from any distro as long as the
 relevant target distro's tools are installed.
 
+Nyble will build an image from the tools into a temporary scratch space.  This
+build will then be snapshot into a tar.bz2 image using tar and pbzip2.  After that
+the image will be incorporated into an initramfs, after adjusting the initramfs
+configuration to include the tarball, and the elements required to unpack it.
+
+This effectively limits the size of the tarball to 2GB, as cpio cannot handle
+larger files at this moment.
+
+### Build variables
+
 Several important variables used for the build are
 * DISTRO : which distribution you will use as the base of your image.  Current choices are debian9 and centos7
+
 * TARGET : top level scratch directory for building the image.  Defaults to ```/mnt/root```.
+
 * NYBLE_KERNEL : 0 or 1, with 0 indicating that the build should use the distro
 provided default kernel.  This does mean you can build these images to be almost entirely based upon the distro itself, with minor modifications to some of the
 startup scripts.  These modifications are necessary to run as a ramdisk booted OS.
 The system will not likely function without them.
+
+### Build configuration outside of variables
 
 The Makefile includes distro specific configuration in ```OS/$DISTRO/{base,config}.conf``` .  The Makefile uses 1 target, ```finalizebase``` which should be the last target in ```OS/$DISTRO/config.conf```.  The ```OS/$DISTRO/base.conf``` portion of
 the distro specific included Makefile should handle all of the base distro
 package installation, and kernel installation.  The ```OS/$DISTRO/config.conf```
 should handle all of the post installation configuration, additional driver,
 package, and feature installation.
+
+### Running builds
 
 You can execute up to a specific target, for example ```fb_final``` by running
   ```make fb_final```.  You can continue the image build process by running ```make```.
@@ -109,46 +125,87 @@ to the appropriate location for serving using iPXE and http on your machine.
 located and available for service via http (much faster than tftp), make sure
 you add the following boot options to the kernel line.
 
-  ```root=ram rootfstype=ramdisk udev.children-max=1
-     simplenet=1 verbose console=tty0```
+```
+  root=ram rootfstype=ramdisk udev.children-max=1 simplenet=1 verbose console=tty0
+```
 
-If you want to turn off renaming networking to ```ensXfY...```, also add
-```net.ifnames=0```
+You can add options to this as needed.
+
+### Boot Options
+
+#### Networking
+* ```net.ifnames=0|1``` setting this to 0 will disable renaming networks from
+eth$N. Setting this to 1 will use _new_ naming scheme.  Default is 1.
+
+
+* ```simplenet=0|1``` will remove/re-insert drivers for NICs, loop through all
+     the network devices, bringing the NIC up, and then looking for a carrier.
+     Those that have a carrier will be dhcp'ed.  Using ```simplenet=1``` is
+     is the simplest way to bring up a node
+
+* ```net_if=NET``` configure the NET device (must come before sub options
+     below)
+
+     * ```net_addr=IP/MASK``` set a particular IPv4 IP address/CIDR MASK to the
+       NET address
 
 
 
-   simplenet=1 : will remove/re-insert drivers for NICs, loop through all
-                 the network devices, bringing the NIC up, and then looking
-                 for a carrier.  Those that have a carrier will be dhcp'ed
+* ```br_name=NAME``` create a linux bridge device named NAME (must come
+  before the sub options below)
 
-   net.ifnames=0 :  turn off renaming ethX to ensXfY
+     * ```br_if=NET``` attach NET network device to the NAME bridge
 
-   net_if=NET   : configure the NET device (must come before sub options
-                  below)
-     net_addr=IP/MASK  : set a particular IPv4 IP address/CIDR MASK to the
-                         NET address
-     net_dns=IPDNS       : create an  ```nameserver IPDNS``` entry
-                          in ```/etc/resolv.conf```
-     net_gw=IPGW         : add a network gateway for NET at address IPGW
+     * ```br_addr=IP/MASK``` set a particular IPv4 IP address/CIDR MASK to the
+       NAME bridge.  If not included, the bridge NAME will dhcp for an address
 
-   br_name=NAME : create a linux bridge device named NAME (must come
-                  before the sub options below)
-     br_if=NET  : attach NET network device to the NAME bridge
-     br_addr=IP/MASK : set a particular IPv4 IP address/CIDR MASK to the
-                       NAME bridge.  If not included, the bridge NAME will
-                       dhcp for a name
-     net_dns=IPDNS       : create an  ```nameserver IPDNS``` entry
-                          in ```/etc/resolv.conf```
-     net_gw=IPGW         : add a network gateway for NAME at address IPGW
+- For both ```net_if=NET``` and ```br_name=NAME```, the following suboptions exist
 
-   rootpw=PLAINTXT : set a root password on boot.  Not secure, but usable in an
-                     emergency
-   rootsize=X{G.M,K} : set the tmpfs (if used) root disk size to X with units
-                       as indicated.
+     * ```net_dns=IPDNS``` creates an ```nameserver IPDNS``` entry in ```/etc/resolv.conf```
 
-   disablettyS{0,1,2}=1 : disable any of the serial consoles (activated
-                          by default) from being used for logins.
+     * ```net_gw=IPGW``` add a network gateway at address IPGW
 
-   enablelldpd=1  :  turn on LLPD
+* ```rootpw=PLAINTXT``` set a root password on boot.  Not secure, but usable
+  in an emergency.  The image is immutable, but the instance of the image is not.
+  So you can use this to start up an image instance with a new root password for
+  running you own tests.  Since the instance image will not, by default, attach
+  any specific durable storage, you can use this as a sandbox for testing.
 
-   zpoolimport=1  :  force a zpool import
+* ```rootsize=X{G.M,K}``` set the tmpfs (if used) root disk size to X with units
+  as indicated.
+
+* ```disablettyS{0,1,2}=0|1``` enable (0) or disable any of the serial consoles (activated by default) from being used for logins.
+
+* ```enablelldpd=0|1```  turn LLPD off (0) or on (1).  Off by default.
+
+* ```zpoolimport=1```  For ZFS builds only, force a zpool import.
+
+* ```ramdisktype=zram``` to use a zram (compressed ramdisk block device) rather
+than the default tmpfs device.  This will create an ext4 file system atop the
+```/dev/zram0``` device, and mount it as your root file system.
+
+* ```ramdisksize=SIZE_IN_GB``` to set the ramdisk size to be SIZE_IN_GB number of
+GB.  So if you wish to use a 5GB ramdisk, use ```ramdisksize=5```.  
+
+Normal kernel boot parameters also apply to the image instance.  Due to udev
+issues on startup, using ```udev.children-max=1``` is highly recommended.  You
+may encounter race conditions if you use a number higher than 4.  You may turn
+on basic deugging using ```debug```, or set console to physical terminal ```console=tty0```.
+
+### Debugging
+
+It is possible to break startup at a number of points before, during, and after
+unpacking the rootfs into the ramdisk.
+
+* ```break=preunpack``` will launch a shell before the system creates the ramdisk
+
+* ```debug``` on the command line will also return the environment variables
+prior to creating the ramdisk
+
+* ```image=keep``` will prevent the startup procedure from deleting the snapshot
+tarball.
+
+* ```break=postunpack``` will launch a shell after the system creates the ramdisk
+and unpacks the snapshot tarball.
+
+Exiting these shells should continue startup operation.
