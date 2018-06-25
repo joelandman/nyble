@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ../config/all.conf
+. /root/config/all.conf
 if [[ ${INST_IPROUTE2} -eq 1 ]]; then 
 
 IPR2_VER=4.16.0

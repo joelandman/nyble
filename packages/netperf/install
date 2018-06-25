@@ -4,5 +4,5 @@
 if [[ -e /etc/debian_version ]]; then
    dpkg -i /root/x/netperf*deb
 else
-   rpm -ivh /root/x/netperf*rpm
+   rpm -ivh --nodeps --force /root/x/netperf*rpm
 fi

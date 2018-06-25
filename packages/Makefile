@@ -18,9 +18,10 @@ $(build):
 	done
 
 %.complete: %.build
-	mkdir -p  ${TARGET}/root/x
-	cd $* ; cp -vf * ${TARGET}/root/x;  chroot ${TARGET} /root/x/install
-	rm -rf ${TARGET}/root/x
+	mkdir -p  ${TARGET}/root/x 
+	cp -vf $*/* ${TARGET}/root/x
+	chroot ${TARGET} /root/x/install
+	rm -rf ${TARGET}/root/x 
 	touch $*.complete
 
 clean:  
