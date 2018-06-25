@@ -5,5 +5,9 @@ tar -zxvf Data-Utils.tar.gz
 cd Data-Utils
 perl Makefile.PL
 make 
-make test
+if [[ -e /etc/debian_version ]]; then
+# test will fail on CentOS as Test::More isn't available as a distro package
+make test 
+fi
+
 make install
