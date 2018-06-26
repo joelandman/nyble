@@ -52,6 +52,16 @@ package, and feature installation.
 
 ### Running builds
 
+Note: for Centos7 builds, you will need to copy the contents of ```OS/centos7/rpm-gpg-keys``` to
+```/etc/pki/rpm-gpg/```
+	
+```
+	cp -v OS/centos7/rpm-gpg-keys/* /etc/pki/rpm-gpg/
+```
+
+or you will run into a yum bug, whereby it has keys installed in the image build TARGET, 
+but the yum command cannot see them.  Working on a mechanism to resolve this.
+
 You can execute up to a specific target, for example ```fb_final``` by running
   ```make fb_final```.  You can continue the image build process by running ```make```.
 
