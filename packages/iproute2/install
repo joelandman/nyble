@@ -3,7 +3,7 @@
 #. /root/config/all.conf
 #if [[ ${INST_IPROUTE2} -eq 1 ]]; then 
 
-IPR2_VER=4.16.0
+IPR2_VER=4.17.0
 . /root/kernel.data
 
 # need libmnl-dev libcap-dev

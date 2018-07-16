@@ -3,8 +3,8 @@
 . ../config/all.conf
 if [[ ${INST_OVS} -eq 1 ]]; then 
 
-OVS_VER=2.9.1
-DPDK_VER=18.02.1
+OVS_VER=2.9.2
+DPDK_VER=18.05
 . /root/kernel.data
 echo "/usr/local/lib" >> /etc/ld.so.conf.d/local.conf
 ldconfig
