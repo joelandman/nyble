@@ -13,6 +13,9 @@
 #
 ### END INIT INFO
 
+### the opening brace below is matched by the closing brace at the 
+#   bottom of the file.  DONT REMOVE IT, or you lose logging.
+{
 
 #
 # nyble provides post boot config
@@ -71,7 +74,7 @@ case "$1" in
 
 	  # resize root ramdisk if rootsize= exists and root is on tmpfs
 	  if (grep -q rootsize= /proc/cmdline); then
-	     rootfstype=$(mount | grep `df -h / | tail -1 | cut -d" " -f1` | head -1 | cut -f5 -d" ")
+	     rootfstype=$(mount | grep "on / " | perl -lane 'print $F[4]')
 	     if [[ "$rootfstype" == "tmpfs" ]]; then
 	  	 rootsize=$(/opt/nyble/bin/get_cmdline_key.pl rootsize)
 		 mount -o remount,size=$rootsize /
@@ -281,11 +284,11 @@ case "$1" in
 
 	# mdadmassemble=0 forces no default assembly of MDRAID devices
 	mdadm --examine --scan > /tmp/mdadm.conf
+	mdadm -S /dev/md*
         if (grep -q mdadmassemble=0 /proc/cmdline); then
            echo "Not assembling MDRAID devices"
-	   # specifically turn off assembly of these devices
-	   mdadm -S /dev/md*
 	  else
+	
 	   mdadm -As -c /tmp/mdadm.conf
         fi
 
@@ -328,3 +331,5 @@ case "$1" in
 	      exit 1
 esac
 exit ${RETVAL}
+
+} 2>&1 | tee -a /var/log/nyble
