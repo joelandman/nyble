@@ -96,67 +96,44 @@ case "$1" in
 	     systemctl stop serial-getty@ttyS2.service
 	  fi
 
-	# use systemd networking controls ...
-	if (grep -q systemdnetwork=1 /proc/cmdline); then
-		systemctl enable network
-		systemctl start  network
-	fi
-
-	# scan for MD RAID devices and auto-generate an /etc/mdadm.conf
-        if (grep -q mdscan=1 /proc/cmdline); then
-		mdadm --examine --scan >> /tmp/mdadm.conf
-		cp -f /etc/mdadm.conf /etc/mdadm.conf.original
-		mkdir -p /etc/mdadm
-		rm -f /etc/mdadm/mdadm.conf /etc/mdadm.conf
-		mv /tmp/mdadm.conf /etc/mdadm/mdadm.conf
-		ln -s /etc/mdadm/mdadm.conf /etc/mdadm.conf
-		mdadm -As
-        fi
-
-        # use mdmonitor ...
-        if (grep -q enablemdmonitor=1 /proc/cmdline); then
-                systemctl enable mdmonitor
-                systemctl start  mdmonitor
-        fi
-
-
 
 	# use simplified networking if simplenet=1 is in boot commandline
 	# basically bring up each ethernet (eth*) and then see whom has a
 	# carrier.  DHCP those interfaces.  This breaks if portfast is not
 	# enabled on your switches (it should be enabled unless there is a
 	# very good reason to disable it)
-	if (grep -q simplenet=1 /proc/cmdline); then
-	   # reset network state, loading specific drivers
-	   /etc/init.d/networking  stop
-	   rmmod igb
-	   rmmod ixgbe
-	   rmmod i40e
-	   rmmod cxgb4
-	   rmmod mlx4_en
-	   rmmod mlx5_core
-	   rmmod virtio-net
-	   # blow away the insanity
-	   rm -f /etc/udev/rules.d/70-persistent-net.rules
-	   # /sigh
-	   sleep 2
-	   modprobe -v virtio-net
-	   modprobe -v igb
-	   modprobe -v e1000e
-	   modprobe -v i40e
-	   modprobe -v cxgb4
-	   modprobe -v ixgbe
-	   modprobe -v mlx4_en
-	   modprobe -v mlx5_core
-	   /etc/init.d/networking start
+	# reset network state, loading specific drivers
+	/etc/init.d/networking  stop
+	rmmod igb
+	rmmod ixgbe
+	rmmod i40e
+	rmmod cxgb4
+	rmmod mlx4_en
+	rmmod mlx5_core
+	rmmod virtio-net
+	# blow away the insanity
+	rm -f /etc/udev/rules.d/70-persistent-net.rules
+	# /sigh
+	sleep 2
+	modprobe -v virtio-net
+	modprobe -v igb
+	modprobe -v e1000e
+	modprobe -v i40e
+	modprobe -v cxgb4
+	modprobe -v ixgbe
+	modprobe -v mlx4_en
+	modprobe -v mlx5_core
+	/etc/init.d/networking start
 
-	   # bring interfaces up
-	   for net in $(ls /sys/class/net/ | grep -v lo ) ; do
+	# bring interfaces up
+	for net in $(ls /sys/class/net/ | grep -v lo ) ; do
 	      /sbin/ifconfig $net up
-	   done
+	done
+
+	if (grep -q simplenet=1 /proc/cmdline); then
 	   sleep 10
-			# sleep 10 seconds to make sure they establish link, then
-			# probe for link.  dhclient on all interfaces with a link
+	   # sleep 10 seconds to make sure they establish link, then
+	   # probe for link.  dhclient on all interfaces with a link
 
 	   ${DHCLIENT} -x
 	   ports=""
@@ -169,6 +146,7 @@ case "$1" in
 	   echo "ports= $ports"
 	   ${DHCLIENT} -v  $ports
 	fi
+
 
 	#set specific network IP/mask, DNS, default GW
 	if (grep -q net_if= /proc/cmdline); then
@@ -229,8 +207,6 @@ case "$1" in
                 br_fd=$(/opt/nyble/bin/get_cmdline_key.pl br_fd)
                 brctl setfd $br_name $br_fd
            fi
-
-
         fi
 
 
@@ -293,7 +269,27 @@ case "$1" in
 	   exec chroot . /bin/bash -c 'umount -l /old_root ; /sbin/init 3 ' <dev/console >dev/console 2>&1
 	fi
 
-	# enablecloud-init=1 turns on cloud-init
+	# this is how to do late loading of drivers, so they don't interfere with boot.
+	# driverprobe=list,of,drivers,to,modprobe,post,boot
+	if (grep -q driverprobe= /proc/cmdline); then
+	  drivers=$(/opt/nyble/bin/get_cmdline_key.pl driverprobe)
+	  list=$(echo $drivers | sed 's|\,| |g')
+	  for driver in $list; do
+		modprobe -v $driver
+	  done
+	fi
+
+	# mdadmassemble=0 forces no default assembly of MDRAID devices
+	mdadm --examine --scan > /tmp/mdadm.conf
+        if (grep -q mdadmassemble=0 /proc/cmdline); then
+           echo "Not assembling MDRAID devices"
+	   # specifically turn off assembly of these devices
+	   mdadm -S /dev/md*
+	  else
+	   mdadm -As -c /tmp/mdadm.conf
+        fi
+
+	# enablecloudinit=1 turns on cloud-init
 	if (grep -q enablecloudinit=1 /proc/cmdline); then
 	   systemctl enable cloud-init
 	   systemctl start cloud-init
@@ -310,15 +306,6 @@ case "$1" in
               systemctl enable lldpd
               systemctl start lldpd
         fi
-
-        # enablefirewalld=1 turns on firewalld
-        if (grep -q enablefirewalld=1 /proc/cmdline); then
-              systemctl enable firewalld
-              systemctl start firewalld
-        fi
-
-	
-
 
 	# zpoolimport=1 forces a zpool import
         if (grep -q zpoolimport= /proc/cmdline); then
