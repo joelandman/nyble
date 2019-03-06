@@ -17,6 +17,7 @@
 #   bottom of the file.  DONT REMOVE IT, or you lose logging.
 {
 
+
 #
 # nyble provides post boot config
 #
@@ -74,7 +75,7 @@ case "$1" in
 
 	  # resize root ramdisk if rootsize= exists and root is on tmpfs
 	  if (grep -q rootsize= /proc/cmdline); then
-	     rootfstype=$(mount | grep "on / " | perl -lane 'print $F[4]')
+	     rootfstype=$(mount | grep `df -h / | tail -1 | cut -d" " -f1` | head -1 | cut -f5 -d" ")
 	     if [[ "$rootfstype" == "tmpfs" ]]; then
 	  	 rootsize=$(/opt/nyble/bin/get_cmdline_key.pl rootsize)
 		 mount -o remount,size=$rootsize /
@@ -106,32 +107,31 @@ case "$1" in
 	# enabled on your switches (it should be enabled unless there is a
 	# very good reason to disable it)
 	# reset network state, loading specific drivers
-	/etc/init.d/networking  stop
-	rmmod igb
-	rmmod ixgbe
-	rmmod i40e
-	rmmod cxgb4
-	rmmod mlx4_en
-	rmmod mlx5_core
-	rmmod virtio-net
-	# blow away the insanity
-	rm -f /etc/udev/rules.d/70-persistent-net.rules
-	# /sigh
-	sleep 2
-	modprobe -v virtio-net
-	modprobe -v igb
-	modprobe -v e1000e
-	modprobe -v i40e
-	modprobe -v cxgb4
-	modprobe -v ixgbe
-	modprobe -v mlx4_en
-	modprobe -v mlx5_core
-	/etc/init.d/networking start
 
 	# bring interfaces up
 	for net in $(ls /sys/class/net/ | grep -v lo ) ; do
-	      /sbin/ifconfig $net up
+	   /sbin/ifconfig $net up
 	done
+	sleep 3
+	
+	allports=""
+	ports=""
+	for net in $(ls /sys/class/net/ | grep -v lo ); do
+	     allports="$allports $net"
+             carrier="$( cat  /sys/class/net/$net/carrier )"
+             if [ $carrier -eq 1 ] ; then
+                ports="$ports $net"
+             fi
+	done
+
+
+
+	# startup openibd if we have Mellanox cards
+	if [ `lspci | grep Mell | wc -l` -gt 0 ]; then
+	  /etc/init.d/openibd start
+	fi
+
+
 
 	if (grep -q simplenet=1 /proc/cmdline); then
 	   sleep 10
@@ -139,17 +139,9 @@ case "$1" in
 	   # probe for link.  dhclient on all interfaces with a link
 
 	   ${DHCLIENT} -x
-	   ports=""
-	   for net in $(ls /sys/class/net/ | grep -v lo ); do
-	     carrier="$( cat  /sys/class/net/$net/carrier )"
-	     if [ $carrier -eq 1 ] ; then
-	        ports="$ports $net"
-	     fi
-	   done
 	   echo "ports= $ports"
 	   ${DHCLIENT} -v  $ports
 	fi
-
 
 	#set specific network IP/mask, DNS, default GW
 	if (grep -q net_if= /proc/cmdline); then
@@ -162,32 +154,47 @@ case "$1" in
 		sleep 2
 		dhclient -v $net_if
 	   fi
-           if (grep -q net_dns= /proc/cmdline); then
+	fi
+        if (grep -q net_dns= /proc/cmdline); then
                 net_dns=$(/opt/nyble/bin/get_cmdline_key.pl net_dns)
 		echo "nameserver $net_dns" > /etc/resolv.conf
-           fi
-           if (grep -q net_gw= /proc/cmdline); then
+        fi
+        if (grep -q net_gw= /proc/cmdline); then
                 net_gw=$(/opt/nyble/bin/get_cmdline_key.pl net_gw)
 		route add default gw $net_gw
-           fi
         fi
-
+        
         #bridge control:  set specific network IP/mask, DNS, default GW, bridge ports
         if (grep -q br_name= /proc/cmdline); then
            br_name=$(/opt/nyble/bin/get_cmdline_key.pl br_name)
 	   brctl addbr $br_name
+
+	   # either specify interface names with br_if ...
 	   if (grep -q br_if= /proc/cmdline); then
-                br_if=$(/opt/nyble/bin/get_cmdline_key.pl br_if)
-		brctl addif $br_name $br_if
-		ifconfig $br_if up
+                br_ifs=$(/opt/nyble/bin/get_cmdline_key.pl br_if)
+		list=$(echo $br_ifs | sed 's|\,| |g')
+		for br_if in $list; do
+		    brctl addif $br_name $br_if
+		    ifconfig $br_if up
+		done
+	    else
+	    # or have the system add interfaces that are marked as 
+	    # having a carrier after being brought up, as being in
+	    # the bridge 
+	        echo "Bridged interfaces = " $ports
+		for br_if in $ports; do
+		    brctl addif $br_name $br_if
+                    ifconfig $br_if up
+		done
            fi
+	   ifconfig $br_name up
 
            if (grep -q br_addr= /proc/cmdline); then
                 net_addr=$(/opt/nyble/bin/get_cmdline_key.pl net_addr)
                 ifconfig $br_name $net_addr up
               else
                 dhclient -x
-                sleep 2
+                sleep 3
                 dhclient -v $br_name
            fi
 
@@ -238,6 +245,26 @@ case "$1" in
 	   chmod 600 ~root/.ssh/authorized_keys
 	fi
 
+	# this is how to do late loading of drivers, so they don't interfere with boot.
+        # driverprobe=list,of,drivers,to,modprobe,post,boot
+        if (grep -q driverprobe= /proc/cmdline); then
+          drivers=$(/opt/nyble/bin/get_cmdline_key.pl driverprobe)
+          list=$(echo $drivers | sed 's|\,| |g')
+          for driver in $list; do
+                modprobe -v $driver
+          done
+        fi
+
+	# mdadmassemble=0 forces no default assembly of MDRAID devices
+        mdadm --examine --scan > /tmp/mdadm.conf
+        mdadm -S /dev/md*
+        if (grep -q mdadmassemble=0 /proc/cmdline); then
+           echo "Not assembling MDRAID devices"
+          else        
+           mdadm -As -c /tmp/mdadm.conf
+        fi
+
+
 	# grab runscript= if it exists
 	if (grep -q runscript= /proc/cmdline); then
 	   runscript=$(/opt/nyble/bin/get_cmdline_key.pl runscript)
@@ -272,26 +299,6 @@ case "$1" in
 	   exec chroot . /bin/bash -c 'umount -l /old_root ; /sbin/init 3 ' <dev/console >dev/console 2>&1
 	fi
 
-	# this is how to do late loading of drivers, so they don't interfere with boot.
-	# driverprobe=list,of,drivers,to,modprobe,post,boot
-	if (grep -q driverprobe= /proc/cmdline); then
-	  drivers=$(/opt/nyble/bin/get_cmdline_key.pl driverprobe)
-	  list=$(echo $drivers | sed 's|\,| |g')
-	  for driver in $list; do
-		modprobe -v $driver
-	  done
-	fi
-
-	# mdadmassemble=0 forces no default assembly of MDRAID devices
-	mdadm --examine --scan > /tmp/mdadm.conf
-	mdadm -S /dev/md*
-        if (grep -q mdadmassemble=0 /proc/cmdline); then
-           echo "Not assembling MDRAID devices"
-	  else
-	
-	   mdadm -As -c /tmp/mdadm.conf
-        fi
-
 	# enablecloudinit=1 turns on cloud-init
 	if (grep -q enablecloudinit=1 /proc/cmdline); then
 	   systemctl enable cloud-init
@@ -310,10 +317,25 @@ case "$1" in
               systemctl start lldpd
         fi
 
-	# zpoolimport=1 forces a zpool import
-        if (grep -q zpoolimport= /proc/cmdline); then
+	# disablezfs=1 forces zfs modules to not be loaded
+	if (grep -q disablezfs=1 /proc/cmdline); then
+	   echo "zfs module not loaded"
+	  else
+	   # 2GiB of RAM max for zfs arc
+	   modprobe -v zfs zfs_arc_max=2147483648 
+	
+	   # zpoolimport=1 forces a zpool import
+           if (grep -q zpoolimport= /proc/cmdline); then
 	      pool=$(/opt/nyble/bin/get_cmdline_key.pl zpoolimport)
               zpool import -f $pool
+           fi
+	fi
+
+	# nomad=0 forces nomad not to run
+        if (grep -q nomad=0 /proc/cmdline); then
+	      echo "nomad will not run automatically"
+	   else
+	      /usr/local/bin/nomad agent -dev
         fi
 	      ;;
 
@@ -328,8 +350,9 @@ case "$1" in
 
 	*)
 	      echo "Usage: nyble {start|stop|restart}"
-	      exit 1
+	      RETVAL=1
 esac
-exit ${RETVAL}
 
 } 2>&1 | tee -a /var/log/nyble
+
+exit ${RETVAL}
