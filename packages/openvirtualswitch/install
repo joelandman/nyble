@@ -1,64 +1,29 @@
 #!/bin/bash
 
-. ../config/all.conf
-if [[ ${INST_OVS} -eq 1 ]]; then 
-
-OVS_VER=2.9.2
-DPDK_VER=18.05
 . /root/kernel.data
-echo "/usr/local/lib" >> /etc/ld.so.conf.d/local.conf
-ldconfig
 
 ### DPDK
 # need libpcap and libnuma development environments
 
+# this includes Ubuntu
 if [[ -e /etc/debian_version ]]; then
-	apt-get clean all
 	apt-get install -y libnuma-dev libpcap-dev
+	apt-get install -y openvswitch-switch-dpdk openvswitch-test dpdk-dev  \
+	       dpdk-igb-uio-dkms dpdk-rte-kni-dkms python-networking-ovs-dpdk \
+	       openvswitch-vtep openvswitch-pki openvswitch-testcontroller    \
+	       librte-pmd-mlx5-17.11 librte-pmd-mlx4-17.11                    \
+	       librte-pmd-virtio17.11 librte-pmd-vhost17.11                   \
+	       librte-pmd-i40e17.11 librte-pmd-cxgbe17.11                     \
+	       librte-pmd-bond17.11 librte-pmd-af-packet17.11                 \
+	       librte-pmd-ixgbe17.11 librte-pmd-pcap17.11 		      \
+	       librte-pmd-virtio17.11 librte-pmd-vhost17.11                   \
+	       librte-pmd-tap17.11 librte-pmd-lio17.11 librte-pmd-i40e17.11   \
+	       librte-mempool-ring17.11 librte-latencystats17.11              \
+	       librte-flow-classify17.11 librte-bus-pci17.11 libdpdk-dev      
+
 fi
 
 if [[ -e /etc/redhat-release ]]; then
-	yum -y clean all
-	yum -y update
         yum -y install numactl-devel libpcap-devel numactl libpcap
+	DPDK_BUILD_OPTS="RTE_KERNELDIR=/usr/src/kernels/${KERNEL_VERSION} CONFIG_RTE_LIBRTE_MLX5_PMD=y"
 fi
-
-cd /root/x
-pushd .
-tar -zxvf dpdk-${DPDK_VER}.tar.gz
-cd dpdk-stable-${DPDK_VER}
-export RTE_KERNELDIR=/usr/src/linux-${KERNEL_VERSION}
-make config T=x86_64-native-linuxapp-gcc 
-sed -ri 's,(PMD_PCAP=).*,\1y,' build/.config
-
-##  Shared build breaks right now.   Really ...
-##sed -ri 's,(CONFIG_RTE_BUILD_SHARED_LIB=).*,\1y,' build/.config
-##
-
-make -j8
-make install
-
-ldconfig
-
-popd
-rm -rf dpdk-${DPDK_VER}.tar.xz dpdk-stable-${DPDK_VER}
-
-
-### OVS
-pushd .
-tar -zxvf openvswitch-${OVS_VER}.tar.gz
-cd openvswitch-${OVS_VER}
-LDFLAGS="-L/usr/lib/x86_64-linux-gnu/" ./configure --with-dpdk=/usr/local --disable-shared 
-make -j8 
-make install
-popd 
-
-fi
-
-ldconfig
-
-
-
-
-
-
