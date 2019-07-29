@@ -1,21 +1,22 @@
 # Nlytiq Base Linux Environment (NyBLE)
 #  This is the image building makefile.
 #
+LODEV	= $(shell scripts/lodev.sh)
 
 all:	finalizebase ramdisk_build_final
 
 usbkey:	finalizebase ramdisk_build_final
 	# assume an (at least) 4GB USB drive
-	dd if=/dev/zero of=${TARGET}/nyble.usb bs=1G count=2
-	losetup /dev/loop3 ${TARGET}/nyble.usb
-	parted /dev/loop3 mklabel msdos
-	parted /dev/loop3 mkpart primary fat32 1MB 2GB
-	mkfs.fat /dev/loop3p1
-	syslinux -i /dev/loop3p1
-	dd conv=notrunc bs=440 count=1 if=usb/mbr.bin of=/dev/loop3
-	parted /dev/loop3 set 1 boot on
+	fallocate  -l 4G ${TARGET}/nyble.usb
+	losetup ${LODEV} ${TARGET}/nyble.usb
+	parted ${LODEV} mklabel msdos
+	parted ${LODEV} mkpart primary fat32 1MB 2GB
+	mkfs.fat ${LODEV}p1
+	syslinux -i ${LODEV}p1
+	dd conv=notrunc bs=440 count=1 if=usb/mbr.bin of=${LODEV}
+	parted ${LODEV} set 1 boot on
 	mkdir ${TARGET}/t
-	mount /dev/loop3p1 ${TARGET}/t
+	mount ${LODEV}p1 ${TARGET}/t
 	cp -vf ${TARGET}/boot/vmlinuz* ${TARGET}/boot/initramfs* ${TARGET}/t
 	cp usb/bootoptions usb/buildcfg.pl usb/vesamenu.c32 usb/menu.c32 ${TARGET}/t
 	cp usb/top ${TARGET}/t/syslinux.cfg
@@ -195,7 +196,8 @@ clean:
 		ramdisk_build_* kernel.data usbkey
 	cd packages ; $(MAKE) clean
 	$(shell umount ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
-	losetup -d /dev/loop3
+	$(shell if [[ -e ${LODEV} ]]; then losetup -d ${LODEV} ; fi )
+	rm -f lodev.data
 	umount -l -f ${TARGET}
 
 test_clean:

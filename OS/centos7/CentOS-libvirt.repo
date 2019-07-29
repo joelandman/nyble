@@ -1,7 +1,6 @@
 [centos-libvirt-latest]
 name=CentOS-$releasever - libvirt latest
 baseurl=http://mirror.centos.org/centos/7/virt/x86_64/libvirt-latest/
-#http://vault.centos.org/centos/7/virt/Source/ovirt-4.2/
 gpgcheck=1
 enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Virtualization
