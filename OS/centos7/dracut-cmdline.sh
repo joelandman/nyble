@@ -22,7 +22,12 @@ getargbool 0 rd.udev.log-priority=debug -d rd.udev.debug -d -n -y rdudevdebug &&
 
 source_conf /etc/conf.d
 
-root=$(getarg root=)
+# Get the "root=" parameter from the kernel command line, but differentiate
+# between the case where it was set to the empty string and the case where it
+# wasn't specified at all.
+if ! root="$(getarg root=)"; then
+    root_unset='UNSET'
+fi
 
 rflags="$(getarg rootflags=)"
 getargbool 0 ro && rflags="${rflags},ro"
@@ -38,14 +43,14 @@ export root
 export rflags
 export fstype
 
-make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab'
+make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab' '4+:komem'
 # run scriptlets to parse the command line
 getarg 'rd.break=cmdline' -d 'rdbreak=cmdline' && emergency_shell -n cmdline "Break before cmdline"
 source_hook cmdline
 
 [ -f /lib/dracut/parse-resume.sh ] && . /lib/dracut/parse-resume.sh
 
-case "$root" in
+case "${root}${root_unset}" in
     block:LABEL=*|LABEL=*)
         root="${root#block:}"
         root="$(echo $root | sed 's,/,\\x2f,g')"
@@ -66,12 +71,18 @@ case "$root" in
     /dev/*)
         root="block:${root}"
         rootok=1 ;;
+    UNSET|gpt-auto)
+        # systemd's gpt-auto-generator handles this case.
+        rootok=1 ;;
     ram)
+	# ramdisk
 	rootok=1 ;;
 esac
 
-[ -z "$root" ] && die "No or empty root= argument"
+[ -z "${root}${root_unset}" ] && die "Empty root= argument"
 [ -z "$rootok" ] && die "Don't know how to handle 'root=$root'"
+
+[ "$root" = "UNSET" ] && unset root
 
 export root rflags fstype netroot NEWROOT
 

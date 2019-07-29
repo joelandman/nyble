@@ -7,38 +7,43 @@ type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # skip non-ramdisk
+info " - in ramdiskroot.sh"
+echo " - in ramdiskroot.sh"
 [ $root != "ram" ] && exit 0
-info "resizing ..."
-mount -o remount,size=8G /
-mount -o remount,size=8G /sys
-mount -o remount,size=8G /dev
-mount -o remount,size=8G /dev/shm
-info " ... done resizing"
 
-info "preparing ramdisk:"
-MEMSIZE=8
+/bin/env
 
+info "RAMDISK: "
+export MEMSIZE=12
+export ACTSIZE=16
 
 info " - creating directory $NEWROOT"
 mkdir -p $NEWROOT
 
-#
-# zram version of NEWROOT (non resizeable)
-#ZRAM=`modprobe zram --first-time num_devices=1`
+ramdisktype=$(getarg ramdisktype=)
 
-# check if zram loaded, if so use this, otherwise use the regular mount
-#if $ZRAM ; then
-# info " - found zram, building compressed root ramdisk"
-# echo ${MEMSIZE}G > /sys/block/zram0/disksize
-# echo ${MEMSIZE}G > /sys/block/zram0/mem_limit
-# mkfs.ext4 -q -m 0 -b 4096 -O sparse_super,dir_index,extent -L root /dev/zram0
-# mount -o relatime /dev/zram0 $NEWROOT
-#else
+if [ "$ramdisktype" == "zram" ] ; then
+info " - zram"
+ modprobe -v zram num_devices=1
+ modprobe -v ext4
+ modprobe -v xfs
+ echo "creating ${MEMSIZE}G zram drive"
+ echo "with space for ${ACTSIZE}G capacity"
+ echo ${MEMSIZE}G > /sys/block/zram0/disksize
+ echo ${ACTSIZE}G > /sys/block/zram0/mem_limit
+ info "creating ${MEMSIZE}G zram drive"
+ info "with space for ${ACTSIZE}G capacity"
+
+ #mkfs.ext4 -q -m 0 -b 4096 -O sparse_super,dir_index,extent -L root /dev/zram0
+ mkfs.xfs -f -K /dev/zram0
+ mount -o relatime /dev/zram0 $NEWROOT
+ df -h
+else
  #
  # regular uncompressed NEWROOT (resizeable)
-# info " - did not find zram, building uncompressed root ramdisk"
+ info " - did not find zram, building uncompressed root ramdisk"
  mount -t tmpfs -o size=${MEMSIZE}G,mode=0755 tmpfs $NEWROOT
-#fi
+fi
 
 
 info " - unpacking image into $NEWROOT"
@@ -47,12 +52,14 @@ info " - unpacking image into $NEWROOT"
 info " - completed unpacking"
 
 info " - moving sys, proc, dev, run to $NEWROOT"
-#mount --make-private $NEWROOT
+mkdir -p $NEWROOT/sys
+mkdir -p $NEWROOT/proc
+mkdir -p $NEWROOT/dev
+mkdir -p $NEWROOT/run
 mount --bind /sys  $NEWROOT/sys
 mount --bind /proc $NEWROOT/proc
 mount --bind /dev  $NEWROOT/dev
 mount --bind /run  $NEWROOT/run
-#mount --bind /var  $NEWROOT/var
 info " - done moving mounts to $NEWROOT"
 
 # inject new exit_if_exists
