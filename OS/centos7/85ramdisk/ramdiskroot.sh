@@ -55,11 +55,11 @@ info " - moving sys, proc, dev, run to $NEWROOT"
 mkdir -p $NEWROOT/sys
 mkdir -p $NEWROOT/proc
 mkdir -p $NEWROOT/dev
-mkdir -p $NEWROOT/run
+#mkdir -p $NEWROOT/run
 mount --bind /sys  $NEWROOT/sys
 mount --bind /proc $NEWROOT/proc
 mount --bind /dev  $NEWROOT/dev
-mount --bind /run  $NEWROOT/run
+#mount --bind /run  $NEWROOT/run
 info " - done moving mounts to $NEWROOT"
 
 # inject new exit_if_exists

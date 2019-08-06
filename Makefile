@@ -39,7 +39,7 @@ include config/all.conf
 include kernel/kernel.conf
 
 #  define server URLs for major components
-include urls.conf
+include config/urls.conf
 
 # attach to distro specific build
 include OS/${DISTRO}/base.conf
