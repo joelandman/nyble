@@ -20,11 +20,9 @@ usbkey:	finalizebase ramdisk_build_final
 	cp -vf ${TARGET}/boot/vmlinuz* ${TARGET}/boot/initramfs* ${TARGET}/t
 	cp usb/bootoptions usb/buildcfg.pl usb/vesamenu.c32 usb/menu.c32 ${TARGET}/t
 	cp usb/top ${TARGET}/t/syslinux.cfg
-	pushd .
 	cd ${TARGET}/t ; cat bootoptions | ./buildcfg.pl  >> syslinux.cfg
-	popd
 	umount ${TARGET}/t
-	losetup -d /dev/loop3	
+	losetup -d ${LODEV}
 	touch usbkey
 	
 
