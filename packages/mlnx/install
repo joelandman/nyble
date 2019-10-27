@@ -1,25 +1,43 @@
 #!/bin/bash
 
+MLNX_VER=4.7-1.0.0.1
+LSB=`lsb_release -a`
+
+if [[-e /etc/redhat-release ]]; then
+DIST=rhel7.6
+fi
+
+if (echo ${LSB} | grep -q Debian ); then
+DIST=debian9.9
+fi
+
+if (echo ${LSB} | grep -q Ubuntu ); then
+DIST=ubuntu18.04
+fi
+
+ARCH=x86_64
+
+MLNX_NAME=MLNX_OFED_LINUX-${MLNX_VER}-${DIST}-${ARCH}
+MLNX_TAR=${MLNX_NAME}.tgz
+
 
 . /root/kernel.data
 
 pushd .
 cd /root/x
 
-# need libmnl-dev libcap-dev
-if [[ -e /etc/redhat-release ]]; then
- MLNX=MLNX_OFED_LINUX-4.6-1.0.1.1-rhel7.6-x86_64
- MLNXTAR=${MLNX}.tgz
+tar -zxvf ${MLNX_TAR}
+cd ${MLNX_NAME}
 
- tar -zxvf ${MLNXTAR}
- cd ${MLNX}
+if ( cat ${DIST} | grep -q rhel ); then
  yum -y install  pciutils numactl-libs gtk2 atk gcc-gfortran  \
 	tcsh openssl-libs expat lsof ethtool libstdc++ python \
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
-
- ./mlnxofedinstall --skip-distro-check --distro rhel7.6  -vvv  -k 3.10.0-957.21.3.el7.x86_64
-
 fi
+
+./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  -k ${KERNEL_VERSION} --force
+
+
 
 
 popd
