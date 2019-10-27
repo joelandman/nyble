@@ -77,6 +77,7 @@ endif
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsnet.pl /usr/bin/lsnet.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsbond.pl /usr/bin/lsbond.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsbr.pl /usr/bin/lsbr.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/pcilist.pl /usr/bin/pcilist.pl
 
 	touch ramdisk_build_2
 
@@ -92,10 +93,9 @@ endif
 	rm -f /mnt/nyble_snap.tar.xz
 ifeq ($(DISTRO),debian9)
 	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
-ifeq ($(ONLYCORE),1)
-	rm -rf ${TARGET}/var/cache/apt ${TARGET}/var/lib/apt 		\
-				 ${TARGET}/usr/share/doc
 endif
+ifeq ($(DISTRO),debian10)
+	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
 endif
 ifeq ($(DISTRO),ubuntu18.04)
 	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
@@ -107,6 +107,14 @@ endif
 
 ifeq ($(DISTRO),debian9)	
 	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
+		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
+		--exclude="^./proc/*" --exclude="./dev/*"  \
+		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
+		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
+		run  sbin  srv sys tmp  usr  var
+endif
+ifeq ($(DISTRO),debian10)
+	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
 		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
 		--exclude="^./proc/*" --exclude="./dev/*"  \
 		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
@@ -144,8 +152,19 @@ ifeq ($(DISTRO),debian9)
 		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 
 	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
-	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
+endif
+ifeq ($(DISTRO),debian10)
+	cp -vf OS/debian10/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	cp -vf OS/debian10/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	# insert our modified local script to insure that ROOT=ram doesn't error out
+	cp -vf OS/debian10/local ${TARGET}/usr/share/initramfs-tools/scripts
+	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
+	cp -vf OS/debian10/ramboot.initramfs \
+		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
+
+	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 endif
 ifeq ($(DISTRO),ubuntu18.04)
 	cp -vf OS/ubuntu18.04/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
@@ -175,6 +194,10 @@ endif
 	rm -f ${TARGET}/usr/sbin/policy-rc.d
 	#
 ifeq ($(DISTRO),debian9)
+	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
+		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
+endif
+ifeq ($(DISTRO),debian10)
 	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
 		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
 endif
