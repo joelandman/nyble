@@ -6,7 +6,7 @@
 pushd .
 cd /root/x
 
-./NVIDIA-Linux-x86_64-418.87.01.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms
+./NVIDIA-Linux-x86_64-418.87.01.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/build/linux
 
 popd
 

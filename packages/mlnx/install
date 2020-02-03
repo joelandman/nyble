@@ -35,7 +35,9 @@ if ( cat ${DIST} | grep -q rhel ); then
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
 fi
 
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  -k ${KERNEL_VERSION} --force
+./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  \
+	-k ${KERNEL_VERSION} --force --add-kernel-support     \
+	--kernel-sources /usr/src/build/linux 
 
 
 

@@ -1,0 +1,4 @@
+[NyBLE-centos8]
+name=NyBLE-centos8
+baseurl=https://mirror.scalability.org/centos8/AppStream/x86_64/os/
+enabled=1
