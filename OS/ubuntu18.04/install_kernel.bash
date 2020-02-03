@@ -68,4 +68,23 @@ else
 	cp -fv ${TARGET}/root/kernel.data kernel.data
 	chroot ${TARGET} module-assistant -i -l ${KERNEL_VERSION} prepare
 	chroot ${TARGET} ln -s /lib/modules/${KERNEL_VERSION}/build  /lib/modules/${KERNEL_VERSION}/source
+
+	############################################################################
+	# create a /usr/src/build/linux directory with kernel sources, .config
+	# from the header directories, and prepare these sources for module building
+
+	mkdir -p ${TARGET}/usr/src/build/linux
+	cd ${TARGET}/usr/src/build/ ;\
+		tar -jxf `ls ${TARGET}/usr/src/*bz2` ;\
+		mv ${TARGET}/usr/src/build/linux* ${TARGET}/usr/src/build/linux ;\
+		cp ${TARGET}/usr/src/build/linux-headers-${KERNEL_VERSION}/.config ${TARGET}/usr/src/build/linux
+	cd ${TARGET}/usr/src/build/linux ;\
+		make oldconfig
+		make scripts
+		make prepare
+	mv ${TARGET}/lib/modules/${KERNEL_VERSION}/source ${TARGET}/lib/modules/${KERNEL_VERSION}/source.original
+	mv ${TARGET}/lib/modules/${KERNEL_VERSION}/build ${TARGET}/lib/modules/${KERNEL_VERSION}/build.original
+	chroot  ${TARGET} ln -s /usr/src/build/linux /lib/modules/${KERNEL_VERSION}/source
+	chroot  ${TARGET} ln -s /usr/src/build/linux /lib/modules/${KERNEL_VERSION}/build
+	
 fi
