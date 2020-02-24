@@ -106,7 +106,7 @@ endif
 endif
 
 ifeq ($(DISTRO),debian9)	
-	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
+	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSvf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
 		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
 		--exclude="^./proc/*" --exclude="./dev/*"  \
 		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
