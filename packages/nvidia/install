@@ -1,12 +1,14 @@
 #!/bin/bash
 
+NVIDIA_DRV=440.33.01
 
 . /root/kernel.data
 
 pushd .
 cd /root/x
 
-./NVIDIA-Linux-x86_64-418.87.01.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/build/linux
+./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-headers-${KERNEL_VERSION} --kernel-name=${KERNEL_VERSION}
+
 
 popd
 

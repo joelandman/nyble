@@ -1,18 +1,22 @@
 #!/bin/bash
 
-MLNX_VER=4.7-1.0.0.1
+MLNX_VER=4.7-3.2.9.0
 LSB=`lsb_release -a`
+KERN=
 
-if [[-e /etc/redhat-release ]]; then
+if [[ -e /etc/redhat-release ]]; then
 DIST=rhel7.6
+KERN="-k ${KERNEL_VERSION}"
 fi
 
 if (echo ${LSB} | grep -q Debian ); then
 DIST=debian9.9
+KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support --skip-distro-check --distro=ubuntu18.04"
 fi
 
 if (echo ${LSB} | grep -q Ubuntu ); then
 DIST=ubuntu18.04
+KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support"
 fi
 
 ARCH=x86_64
@@ -35,9 +39,7 @@ if ( cat ${DIST} | grep -q rhel ); then
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
 fi
 
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  \
-	-k ${KERNEL_VERSION} --force --add-kernel-support     \
-	--kernel-sources /usr/src/build/linux 
+./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all 
 
 
 
