@@ -5,7 +5,7 @@ LSB=`lsb_release -a`
 KERN=
 
 if [[ -e /etc/redhat-release ]]; then
-DIST=rhel7.6
+DIST=rhel7.7
 KERN="-k ${KERNEL_VERSION}"
 fi
 
