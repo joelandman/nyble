@@ -1,0 +1,43 @@
+#!/bin/bash -x
+
+. /root/kernel.data
+
+
+ZFS_VER=0.8.3
+LSB=`lsb_release -a`
+
+if [[ -e /etc/redhat-release ]]; then
+DIST=rhel7.6
+fi
+
+if (echo ${LSB} | grep -q Debian ); then
+DIST=debian9.9
+apt-get install -y libblkid-dev
+fi
+
+if (echo ${LSB} | grep -q Ubuntu ); then
+DIST=ubuntu18.04
+apt-get install -y libblkid-dev
+fi
+
+ZFS_NAME=zfs-${ZFS_VER}
+ZFS_TAR=${ZFS_NAME}.tar.gz
+
+
+pushd .
+cd /root/x
+
+tar -zxvf ${ZFS_TAR}
+cd ${ZFS_NAME}
+
+./configure
+make -j8
+make install
+
+popd
+
+
+
+
+
+
