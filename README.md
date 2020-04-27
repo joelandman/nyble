@@ -33,7 +33,7 @@ larger files at this moment.
 ### Build variables
 
 Several important variables used for the build are
-* DISTRO : which distribution you will use as the base of your image.  Current choices are debian9 and centos7
+* DISTRO : which distribution you will use as the base of your image.  Current choices are debian9, debian10, ubuntu18.04, ubuntu20.04, and centos7.  Centos8 is in process.
 
 * TARGET : top level scratch directory for building the image.  Defaults to ```/mnt/root```.
 
@@ -52,10 +52,62 @@ package, and feature installation.
 
 ### Running builds
 
-Note: for Centos7 builds, you will need to copy the contents of ```OS/centos7/rpm-gpg-keys``` to
+In short
+
+```
+# # create a debian10 based distro
+make DISTRO=debian10
+
+# # create a debian9 based distro
+make DISTRO=debian9
+
+# # create a ubuntu20.04 based distro
+make DISTRO=debian20.04
+
+# # create a ubuntu18.04 based distro
+make DISTRO=debian18.04
+
+# # create a centos7 based distro
+make DISTRO=centos7
+
+
+# # install to a physical disk/raid/device you have mounted at /mnt/root
+make PHYSICAL=1 [DISTRO=...]
+
+```
+
+This will take some time even with a good internet connection and a close mirror.  It will, upon completion, leave two specific files you need in /mnt/root/boot.  These will be named initramfs-ramboot-$SOME_KERNEL_VERSION and vmlinuz-$SOME_KERNEL_VERSION.  You should preserve these as the build artifacts.  
+
+You may take these two files, and using virt-manager (or qemu) do a direct kernel boot.  Add in kernel boot arguments like this: 
+
+```
+	root=ram rootfstype=ramdisk simplenet=1 verbose udev.children-max=4 rootpw=nyble
+```
+
+You will have a nice console to a ramdisk based full distro running in about 10GB of RAM.  You can tweak that amount by adding a 'ramdisksize=X ' option for values of X from 6-32.  Units are GB.  
+
+These files may be served by PXE (I use ipxe for this), or placed into a systems /boot as a rescue distribution.  For that, I create an /etc/grub.d/40_custom file with these contents
+
+```
+#!/bin/sh
+cat <<EOF
+
+menuentry 'Nlytiq Nyble Ubuntu 18.04 hwe' {
+        linux   /boot/nyble/vmlinuz-5.3.0-40-generic root=ram rootfstype=ramdisk simplenet=1 verbose udev.children-max=4 rootpw=nyble ramdisktype=zram ramdisksize=12
+        initrd  /boot/nyble/initramfs-ramboot-5.3.0-40-generic
+}
+
+EOF
+```
+
+Of course, modify your kernel version in the initrd and kernel lines to suit what you have built.
+
+
+Note for Centos7 builds: you will need to copy the contents of ```OS/centos7/rpm-gpg-keys``` to
 ```/etc/pki/rpm-gpg/```
 	
 ```
+	mkdir -p /etc/pki/rpm-gpg/
 	cp -v OS/centos7/rpm-gpg-keys/* /etc/pki/rpm-gpg/
 ```
 
@@ -80,12 +132,16 @@ TARGET = /mnt/root
 # make TARGET=/outerspace  print-TARGET
 TARGET = /outerspace
 
+# # install to a physical disk/raid/device you have mounted at /mnt/root
+# make PHYSICAL=1
+
 # make print-NYBLE_KERNEL
 NYBLE_KERNEL = 1
 
 # make NYBLE_KERNEL=0 print-NYBLE_KERNEL
 NYBLE_KERNEL = 0
 ```
+
 
 
 Upon successful completion of the build, you will have a kernel and initramfs located in ```${TARGET}/boot/``` that you may use for PXE booting.
@@ -151,7 +207,7 @@ eth$N. Setting this to 1 will use _new_ naming scheme.  Default is 1.
 * ```simplenet=0|1``` will remove/re-insert drivers for NICs, loop through all
      the network devices, bringing the NIC up, and then looking for a carrier.
      Those that have a carrier will be dhcp'ed.  Using ```simplenet=1``` is
-     is the simplest way to bring up a node
+     is the simplest way to bring up a network
 
 * ```net_if=NET``` configure the NET device (must come before sub options
      below)
