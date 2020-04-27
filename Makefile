@@ -104,6 +104,15 @@ ifeq ($(ONLYCORE),1)
 				 ${TARGET}/usr/share/doc
 endif
 endif
+ifeq ($(DISTRO),ubuntu20.04)
+	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
+ifeq ($(ONLYCORE),1)
+	rm -rf ${TARGET}/var/cache/apt ${TARGET}/var/lib/apt	\
+				 ${TARGET}/usr/share/doc
+endif
+endif
+
+
 
 ifeq ($(DISTRO),debian9)	
 	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSvf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
@@ -122,6 +131,14 @@ ifeq ($(DISTRO),debian10)
 		run  sbin  srv sys tmp  usr  var
 endif
 ifeq ($(DISTRO),ubuntu18.04)
+	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
+		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
+		--exclude="^./proc/*" --exclude="./dev/*"  \
+		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
+		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
+		run  sbin  srv sys tmp  usr  var
+endif
+ifeq ($(DISTRO),ubuntu20.04)
 	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
 		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
 		--exclude="^./proc/*" --exclude="./dev/*"  \
@@ -179,7 +196,19 @@ ifeq ($(DISTRO),ubuntu18.04)
 	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
 	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
 endif
+ifeq ($(DISTRO),ubuntu20.04)
+	cp -vf OS/ubuntu20.04/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	cp -vf OS/ubuntu20.04/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
+	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
+	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
+	cp -vf OS/ubuntu20.04/ramboot.initramfs \
+		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
 
+	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
+	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
+	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
+endif
 ifeq ($(DISTRO),centos7)
 	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1
 	cp -fv OS/${DISTRO}/dracut-functions.sh \
@@ -202,6 +231,10 @@ ifeq ($(DISTRO),debian10)
 		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
 endif
 ifeq ($(DISTRO),ubuntu18.04)
+	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
+		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
+endif
+ifeq ($(DISTRO),ubuntu20.04)
 	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
 		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
 endif
