@@ -124,14 +124,10 @@ case "$1" in
              fi
 	done
 
-
-
 	# startup openibd if we have Mellanox cards
 	if [ `lspci | grep Mell | wc -l` -gt 0 ]; then
 	  /etc/init.d/openibd start
 	fi
-
-
 
 	if (grep -q simplenet=1 /proc/cmdline); then
 	   sleep 10
@@ -219,7 +215,6 @@ case "$1" in
            fi
         fi
 
-
 	# grab rootpw= if it exists
 	if (grep -q rootpw= /proc/cmdline); then
 	   rootpw=$(/opt/nyble/bin/get_cmdline_key.pl rootpw)
@@ -263,7 +258,6 @@ case "$1" in
           else        
            mdadm -As -c /tmp/mdadm.conf
         fi
-
 
 	# grab runscript= if it exists
 	if (grep -q runscript= /proc/cmdline); then
