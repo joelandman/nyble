@@ -24,7 +24,7 @@ auto ens3
 iface ens3 inet dhcp
 
 auto dummy0
-iface ens3 inet manual
+iface dummy0 inet manual
 	pre-up modprobe -v dummy numdummies=1
 	post-down rmmod dummy
 
