@@ -51,10 +51,11 @@ if (grep -q rootfstype=ramdisk /proc/cmdline); then
 
 	if (grep -q image=keep /proc/cmdline); then
 		echo "keeping image"
+		mv -fv /nyble_snap.tar.bz2 ${rootmnt}
 	else
 		echo "Removing image"
-	  rm -f  /nyble_snap.tar*
-	  echo
+	  	rm -f  /nyble_snap.tar*
+	  	echo
 	fi
 
 	echo "Make sys proc dev"
