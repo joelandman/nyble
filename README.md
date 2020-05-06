@@ -78,7 +78,7 @@ make PHYSICAL=1 [DISTRO=...]
 
 This will take some time even with a good internet connection and a close mirror.  It will, upon completion, leave two specific files you need in /mnt/root/boot.  These will be named initramfs-ramboot-$SOME_KERNEL_VERSION and vmlinuz-$SOME_KERNEL_VERSION.  You should preserve these as the build artifacts.  
 
-You may take these two files, and using virt-manager (or qemu) do a direct kernel boot.  Add in kernel boot arguments like this: 
+You may take these two files, and using virt-manager (or qemu) do a direct kernel boot.  Add in kernel boot arguments like this:
 
 ```
 	root=ram rootfstype=ramdisk simplenet=1 verbose udev.children-max=4 rootpw=nyble
@@ -105,13 +105,13 @@ Of course, modify your kernel version in the initrd and kernel lines to suit wha
 
 Note for Centos7 builds: you will need to copy the contents of ```OS/centos7/rpm-gpg-keys``` to
 ```/etc/pki/rpm-gpg/```
-	
+
 ```
 	mkdir -p /etc/pki/rpm-gpg/
 	cp -v OS/centos7/rpm-gpg-keys/* /etc/pki/rpm-gpg/
 ```
 
-or you will run into a yum bug, whereby it has keys installed in the image build TARGET, 
+or you will run into a yum bug, whereby it has keys installed in the image build TARGET,
 but the yum command cannot see them.  Working on a mechanism to resolve this.
 
 You can execute up to a specific target, for example ```fb_final``` by running
@@ -131,9 +131,6 @@ TARGET = /mnt/root
 
 # make TARGET=/outerspace  print-TARGET
 TARGET = /outerspace
-
-# # install to a physical disk/raid/device you have mounted at /mnt/root
-# make PHYSICAL=1
 
 # make print-NYBLE_KERNEL
 NYBLE_KERNEL = 1
@@ -175,7 +172,29 @@ You can alter this behavior, by changing the TARGET= variable in the Makefile.
      make [FEATURE_1=0|1] [FEATURE_2=0|1] ... [FEATURE_N=0|1]
   ```
 
-rudimentary support for a bootable usb exists if you use the ```usb``` target.
+Support for a bootable usb exists if you use the ```usb``` target.  That is, to
+make a bootable USB drive image
+
+	```make usb [DISTRO=...]```
+
+at the end of the process, you will find a file named `nyble.usb` in your directory.
+To use this, copy it to a USB drive.  The easiest way to do this is using the
+dd command in linux.
+
+	```umount /dev/$USB ; dd if=nyble.usb of=/dev/$USB oflag=direct bs=1M status=progress```
+
+You may determine your USB drive device using the `lsscsi` command,
+
+	```
+	joe@gandalf:~$ lsscsi
+	[0:0:0:0]    disk    ATA      WDC WDS250G2B0B- 30WD  /dev/sda
+	[2:0:0:0]    disk    ATA      Samsung SSD 840  6B0Q  /dev/sdb
+	[3:0:0:0]    disk    ATA      SAMSUNG MZ7KM960 003Q  /dev/sdc
+   ...
+	[6:0:0:0]    disk    JetFlash Transcend 16GB   1100  /dev/sdh
+
+	```
+In this case, /dev/sdh is my /dev/$USB .
 
 If you wish to turn ZFS compilation on, add ```ZFS=1``` to the make command.
 
@@ -253,6 +272,11 @@ than the default tmpfs device.  This will create an ext4 file system atop the
 * ```ramdisksize=SIZE_IN_GB``` to set the ramdisk size to be SIZE_IN_GB number of
 GB.  So if you wish to use a 5GB ramdisk, use ```ramdisksize=5```.  
 
+* ```image=keep``` copies the boot tarball into / on the booted image.  This
+is useful if you would like to use this to install this (exact) booted system to
+physical disk.  You will need to install and configure grub-pc after this,
+but that is generally a simple process.
+
 Normal kernel boot parameters also apply to the image instance.  Due to udev
 issues on startup, using ```udev.children-max=1``` is highly recommended.  You
 may encounter race conditions if you use a number higher than 4.  You may turn
@@ -267,9 +291,6 @@ unpacking the rootfs into the ramdisk.
 
 * ```debug``` on the command line will also return the environment variables
 prior to creating the ramdisk
-
-* ```image=keep``` will prevent the startup procedure from deleting the snapshot
-tarball.
 
 * ```break=postunpack``` will launch a shell after the system creates the ramdisk
 and unpacks the snapshot tarball.
