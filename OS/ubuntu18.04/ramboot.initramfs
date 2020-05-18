@@ -74,4 +74,4 @@ if (grep -q break=postunpack /proc/cmdline); then
 fi
 
 
-exit 0
+#exit 0

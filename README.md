@@ -202,10 +202,12 @@ You may determine your USB drive device using the `lsscsi` command,
 	```
 In this case, /dev/sdh is my /dev/$USB .
 
-If you wish to turn ZFS compilation on, add ```ZFS=1``` to the make command.
+If you wish to turn package inclusion off (on by default), add ```PACKAGES=0``` 
+to the make command.
 
-  ```make ZFS=1```
+  ```make PACKAGES=0```
 
+Packages include Nvidia, Mellanox drivers, zfs subsystem, and a few related tools.
 
 The bootable kernel and initramfs will be located in /mnt/root/boot.  Copy them
 to the appropriate location for serving using iPXE and http on your machine.
