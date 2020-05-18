@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MLNX_VER=4.7-3.2.9.0
+MLNX_VER=5.0-2.1.8.0
 LSB=`lsb_release -a`
 lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
 . lsb.data
