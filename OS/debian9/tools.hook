@@ -40,6 +40,8 @@ copy_exec /lib/x86_64-linux-gnu/libpcre.so.3 /lib/x86_64-linux-gnu/
 copy_exec /usr/lib/x86_64-linux-gnu/libgomp.so.1 /lib/x86_64-linux-gnu/
 copy_exec /usr/bin/pbzip2 /bin
 copy_exec /usr/bin/pigz /bin
-copy_exec /usr/bin/pxz /bin
+copy_exec /usr/bin/xz /bin
 copy_exec /usr/bin/ldd /bin
+copy_exec /usr/bin/lbzip2 /bin
+copy_exec /usr/bin/zstd /bin
 exit 0

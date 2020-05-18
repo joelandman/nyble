@@ -3,7 +3,7 @@
 . /root/kernel.data
 
 
-ZFS_VER=0.8.3
+ZFS_VER=0.8.4
 LSB=`lsb_release -a`
 
 if [[ -e /etc/redhat-release ]]; then

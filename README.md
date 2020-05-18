@@ -23,9 +23,15 @@ One should be able to build an image from any distro as long as the
 relevant target distro's tools are installed.
 
 Nyble will build an image from the tools into a temporary scratch space.  This
-build will then be snapshot into a tar.bz2 image using tar and pbzip2.  After that
-the image will be incorporated into an initramfs, after adjusting the initramfs
-configuration to include the tarball, and the elements required to unpack it.
+build will then be snapshot into a compressed tar image using tar and a compressor.
+After that the image will be incorporated into an initramfs, after adjusting the 
+initramfs configuration to include the tarball, and the elements required to 
+unpack it.
+
+You can select different compressors by adding a `COMP=pigz` or similar on the
+build line.  Your options are gzip, bzip2, lbzip2, pigz, xz, pxz, zstd.  Current
+default is set to zstd, given how fast it compresses and decompresses compared
+to the others.  Compression ratios are similar across all of the compressors.
 
 This effectively limits the size of the tarball to 2GB, as cpio cannot handle
 larger files at this moment.

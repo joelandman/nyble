@@ -5,6 +5,9 @@ prereqs()
      echo "$PREREQ"
 }
 
+NS=__NYBLE_SNAP__
+CB=__COMP_BIN__
+
 case $1 in
 prereqs)
      prereqs
@@ -46,15 +49,15 @@ if (grep -q rootfstype=ramdisk /proc/cmdline); then
 
 	echo "Unpacking file system into ramdisk"
 	cd ${rootmnt}
-	/bin/tar -I /bin/pbzip2 -xSf  /nyble_snap.tar.bz2 -C ${rootmnt}
+	/bin/tar -I ${CB}  -xSf  /${NS} -C ${rootmnt}
   echo
 
 	if (grep -q image=keep /proc/cmdline); then
 		echo "keeping image"
-		mv -fv /nyble_snap.tar.bz2 ${rootmnt}
+		mv -fv /${NS} ${rootmnt}
 	else
 		echo "Removing image"
-	  	rm -f  /nyble_snap.tar*
+	  	rm -f  /${NS}
 	  	echo
 	fi
 
