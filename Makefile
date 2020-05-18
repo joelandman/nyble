@@ -36,15 +36,50 @@ finalizebase: osinst fb_last
 include config/all.conf
 include kernel/kernel.conf
 
-#  define server URLs for major components
-include config/urls.conf
-
 # attach to distro specific build
 include OS/${DISTRO}/base.conf
 include OS/${DISTRO}/config.conf
 
 #  place new packages to install in the packages/ directory
 include packages/packages.conf
+
+######################
+# compressor file extension and binary
+#
+ifeq (${COMP},bzip2)
+COMP_BIN=$(shell which bzip2)
+COMP_EXT=bz2
+endif
+ifeq (${COMP},pbzip2)
+COMP_BIN=$(shell which  pbzip2)
+COMP_EXT=bz2
+endif
+ifeq (${COMP},lbzip2)
+COMP_BIN=$(shell which  lbzip2)
+COMP_EXT=bz2
+endif
+ifeq (${COMP},gzip)
+COMP_BIN=$(shell which  gzip)
+COMP_EXT=gz
+endif
+ifeq (${COMP},pigz)
+COMP_BIN=$(shell which pigz)
+COMP_EXT=gz
+endif
+ifeq (${COMP},xz)
+COMP_BIN=$(shell which  xz)
+COMP_EXT=xz
+endif
+ifeq (${COMP},pxz)
+COMP_BIN=$(shell which  pxz)
+COMP_EXT=xz
+endif
+ifeq (${COMP},zstd)
+COMP_BIN=$(shell which zstd)
+COMP_EXT=zst
+endif
+
+NYBLE_SNAP=nyble_snap.tar.${COMP_EXT}
 
 
 
@@ -72,13 +107,14 @@ endif
 
 	# place scripts where they need to be for startup
 	mkdir -p ${TARGET}/opt/nyble/bin
-	cp -fv scripts/*.pl  ${TARGET}/opt/nyble/bin
+	cp -fv scripts/*.pl scripts/spark  ${TARGET}/opt/nyble/bin
 	chmod +x ${TARGET}/opt/nyble/bin/*.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsnet.pl /usr/bin/lsnet.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsbond.pl /usr/bin/lsbond.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsbr.pl /usr/bin/lsbr.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/pcilist.pl /usr/bin/pcilist.pl
-
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsint.pl /usr/bin/lsint.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/spark /usr/bin/spark
 	touch ramdisk_build_2
 
 
@@ -90,7 +126,8 @@ ifneq ($(DISTRO),centos7)
 	umount -l ${TARGET}/sys
 	umount -l ${TARGET}/proc
 endif
-	rm -f /mnt/nyble_snap.tar.xz
+	rm -f /mnt/${NYBLE_SNAP}
+
 ifeq ($(DISTRO),debian9)
 	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
 endif
@@ -114,32 +151,8 @@ endif
 
 
 
-ifeq ($(DISTRO),debian9)	
-	cd ${TARGET} ;	 tar -I /usr/bin/pbzip2 -cSvf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
-		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
-		--exclude="^./proc/*" --exclude="./dev/*"  \
-		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
-		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
-		run  sbin  srv sys tmp  usr  var
-endif
-ifeq ($(DISTRO),debian10)
-	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
-		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
-		--exclude="^./proc/*" --exclude="./dev/*"  \
-		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
-		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
-		run  sbin  srv sys tmp  usr  var
-endif
-ifeq ($(DISTRO),ubuntu18.04)
-	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
-		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
-		--exclude="^./proc/*" --exclude="./dev/*"  \
-		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
-		bin  boot  data dev  etc  home  lib lib64  media  mnt  opt  proc root \
-		run  sbin  srv sys tmp  usr  var
-endif
-ifeq ($(DISTRO),ubuntu20.04)
-	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  --exclude="^./run/docker*" \
+ifneq ($(DISTRO),centos7)	
+	cd ${TARGET} ;	 tar -I "${COMP_BIN}" -cSf /mnt/${NYBLE_SNAP}  --exclude="^./run/docker*" \
 		--exclude="./run/samba/winbindd/pipe*" --exclude="^./sys/*" \
 		--exclude="^./proc/*" --exclude="./dev/*"  \
 		--exclude="^./var/lib/docker/devicemapper/devicemapper/*"  \
@@ -148,95 +161,34 @@ ifeq ($(DISTRO),ubuntu20.04)
 endif
 ifeq ($(DISTRO),centos7)
 	rm -fr  ${TARGET}/var/cache/yum  ${TARGET}/usr/games 
-	cd ${TARGET} ;   tar -I /usr/bin/pbzip2 -cSf /mnt/nyble_snap.tar.bz2  \
+	cd ${TARGET} ;   tar -I "${COMP_BIN}" -cSf /mnt/${NYBLE_SNAP}  \
 		bin boot data etc home lib lib64 media mnt opt root \
 		run sbin srv tmp usr var
 endif
-	mv -fv /mnt/nyble_snap.tar.bz2 ${TARGET}
+	mv -fv /mnt/${NYBLE_SNAP} ${TARGET}
 endif
 	touch ramdisk_build_3
 
 ramdisk_build_final: ramdisk_build_3
+	#
+	# remove the policy bits now to allow ramdisk and other services to rebuild
+	rm -f ${TARGET}/usr/sbin/policy-rc.d
+	#
+
 ifndef PHYSICAL
 	# for ramdisk based booting
-ifeq ($(DISTRO),debian9)
-	cp -vf OS/debian9/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp -vf OS/debian9/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp -vf OS/debian9/ramboot.initramfs \
-		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-
-	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-endif
-ifeq ($(DISTRO),debian10)
-	cp -vf OS/debian10/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp -vf OS/debian10/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	# insert our modified local script to insure that ROOT=ram doesn't error out
-	cp -vf OS/debian10/local ${TARGET}/usr/share/initramfs-tools/scripts
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp -vf OS/debian10/ramboot.initramfs \
-		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-
-	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-endif
-ifeq ($(DISTRO),ubuntu18.04)
-	cp -vf OS/ubuntu18.04/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp -vf OS/ubuntu18.04/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp -vf OS/ubuntu18.04/ramboot.initramfs \
-		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-
-	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
-	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
-endif
-ifeq ($(DISTRO),ubuntu20.04)
-	cp -vf OS/ubuntu20.04/nyble.hook ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	cp -vf OS/ubuntu20.04/tools.hook ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/nyble
-	chmod +x ${TARGET}/usr/share/initramfs-tools/hooks/tools
-	mkdir -p ${TARGET}/usr/share/initramfs-tools/scripts/local-top/
-	cp -vf OS/ubuntu20.04/ramboot.initramfs \
-		${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-
-	chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local-top/ramboot
-	#cp local.ramboot  ${TARGET}/usr/share/initramfs-tools/scripts/local
-	#chmod +x ${TARGET}/usr/share/initramfs-tools/scripts/local
-endif
-ifeq ($(DISTRO),centos7)
+ifneq ($(DISTRO),centos7)
+	OS/${DISTRO}/prepare_initramfs.bash ${TARGET} ${NYBLE_SNAP} ${COMP_BIN}
+	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
+		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
+else
 	#cat OS/${DISTRO}/dracut-functions.patch | chroot ${TARGET} /usr/bin/patch -p1
 	cp -fv OS/${DISTRO}/dracut-functions.sh \
 		${TARGET}/usr/lib/dracut/dracut-functions.sh
 	chroot ${TARGET} yum clean all
 	rm -rf ${TARGET}/var/cache/yum
-	chroot ${TARGET} /usr/sbin/dracut -v --force --regenerate-all
+	chroot ${TARGET} /usr/sbin/dracut --force --regenerate-all
 endif
-endif
-	#
-	# remove the policy bits now to allow ramdisk and other services to rebuild
-	rm -f ${TARGET}/usr/sbin/policy-rc.d
-	#
-ifeq ($(DISTRO),debian9)
-	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
-		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
-endif
-ifeq ($(DISTRO),debian10)
-	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
-		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
-endif
-ifeq ($(DISTRO),ubuntu18.04)
-	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
-		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
-endif
-ifeq ($(DISTRO),ubuntu20.04)
-	chroot ${TARGET} /usr/sbin/mkinitramfs -v -o \
-		/boot/initramfs-ramboot-${KERNEL_VERSION} ${KERNEL_VERSION}
 endif
 	touch ramdisk_build_final
 

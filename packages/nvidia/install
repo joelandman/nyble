@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NVIDIA_DRV=440.33.01
+NVIDIA_DRV=440.64.00
 
 . /root/kernel.data
 

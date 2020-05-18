@@ -42,4 +42,6 @@ copy_exec /usr/bin/pbzip2 /bin
 copy_exec /usr/bin/pigz /bin
 copy_exec /usr/bin/xz /bin
 copy_exec /usr/bin/ldd /bin
+copy_exec /usr/bin/lbzip2 /bin
+copy_exec /usr/bin/zstd /bin
 exit 0
