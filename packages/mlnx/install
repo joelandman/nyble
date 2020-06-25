@@ -1,9 +1,15 @@
-#!/bin/bash
+#!/bin/bash -x
+
+set -e
 
 MLNX_VER=5.0-2.1.8.0
-LSB=`lsb_release -a`
-lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
+LSB=`/usr/bin/lsb_release -a`
+
+# debian 10 (and likely 9) messes up
+lsb_release -a |  grep -v "Distributor ID"  | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
 . lsb.data
+. /root/kernel.data
+
 
 KERN=
 
@@ -13,8 +19,9 @@ KERN="-k ${KERNEL_VERSION}"
 fi
 
 if (echo ${LSB} | grep -q Debian ); then
-DIST=debian$Release
-KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support --skip-distro-check --distro=ubuntu18.04"
+DIST=debian${Release}.0
+KERN="-k ${KERNEL_VERSION} -s /lib/modules/${KERNEL_VERSION}/build  --add-kernel-support --skip-distro-check "
+#  --distro=${DIST}"   ## it seems that this breaks on debian 10.  Go figure.
 fi
 
 if (echo ${LSB} | grep -q Ubuntu ); then
@@ -28,7 +35,6 @@ MLNX_NAME=MLNX_OFED_LINUX-${MLNX_VER}-${DIST}-${ARCH}
 MLNX_TAR=${MLNX_NAME}.tgz
 
 
-. /root/kernel.data
 
 pushd .
 cd /root/x
@@ -42,9 +48,14 @@ if ( cat ${DIST} | grep -q rhel ); then
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
 fi
 
+echo Build options
+echo     "${KERN}"
+
 ./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all 
 
-
+rm -rf /tmp/MLNX*
+apt-get clean all
+apt-get update
 
 
 popd

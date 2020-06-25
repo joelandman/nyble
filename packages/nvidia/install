@@ -7,7 +7,15 @@ NVIDIA_DRV=440.64.00
 pushd .
 cd /root/x
 
-./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-headers-${KERNEL_VERSION} --kernel-name=${KERNEL_VERSION}
+./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none \
+	--no-x-check \
+	--disable-nouveau \
+	--run-nvidia-xconfig \
+	--no-cc-version-check \
+	--install-libglvnd \
+	--dkms \
+	--kernel-source-path=/lib/modules/${KERNEL_VERSION}/build \
+	--kernel-name=${KERNEL_VERSION}
 
 
 popd
