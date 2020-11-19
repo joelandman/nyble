@@ -57,7 +57,6 @@ else
 		install linux-base linux-image-amd64 initramfs-tools        \
 		libgtk2.0-dev libslang2-dev libperl-dev libpython-dev       \
 		libelf-dev python-dev libiberty-dev libdw-dev libbfd-dev    \
-<<<<<<< HEAD
 		module-assistant linux-libc-dev libelf-dev  	 	    \
 		linux-headers-amd64 linux-source
 	# linux-source
@@ -92,19 +91,4 @@ else
         chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/source
 	chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/build
 	#chroot ${TARGET} /root/prepare_modbuild.bash
-=======
-		linux-source linux-perf module-assistant
-	KERNEL_VERSION=`${TARGET}/root/get_kver.bash ${TARGET}`
-	KV=`echo ${KERNEL_VERSION} | cut -d"." -f1,2`
-	echo NYBLE_KERNEL=${NYBLE_KERNEL}	   > ${TARGET}/root/kernel.data
-	echo TARGET=${TARGET}		      >> ${TARGET}/root/kernel.data
-	echo KERNEL_URL=${KERNEL_URL}	      >> ${TARGET}/root/kernel.data
-	echo KERNEL_VERSION=${KERNEL_VERSION}      >> ${TARGET}/root/kernel.data
-	echo KV=${KV}			      >> ${TARGET}/root/kernel.data
-	echo NK=${NYBLE_KERNEL}		    >> ${TARGET}/root/kernel.data
-	echo DISTRO=${DISTRO}		      >> ${TARGET}/root/kernel.data
-	cp -fv ${TARGET}/root/kernel.data kernel.data
-	chroot ${TARGET} module-assistant -i -l ${KERNEL_VERSION} prepare
-	chroot ${TARGET} ln -s /lib/modules/${KERNEL_VERSION}/build  /lib/modules/${KERNEL_VERSION}/source
->>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
 fi

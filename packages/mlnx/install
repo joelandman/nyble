@@ -1,25 +1,15 @@
 #!/bin/bash -x
-<<<<<<< HEAD
-
-MLNX_VER=5.0-2.1.8.0
-LSB=`lsb_release -a`
-lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;print ' > lsb.data
-. lsb.data
-ARCH=x86_64
-. /root/kernel.data
-=======
-
 set -e
 
 MLNX_VER=5.0-2.1.8.0
 LSB=`/usr/bin/lsb_release -a`
+ARCH=x86_64
 
 # debian 10 (and likely 9) messes up
 lsb_release -a |  grep -v "Distributor ID"  | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
 . lsb.data
 . /root/kernel.data
 
->>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
 
 KERN=
 
@@ -29,7 +19,6 @@ KERN="-k ${KERNEL_VERSION}"
 fi
 
 if (echo ${LSB} | grep -q Debian ); then
-<<<<<<< HEAD
 DIST=debian$Release
 if [[ ${Release} == "10" ]]; then
 	DIST=debian${Release}.0
@@ -39,11 +28,6 @@ apt-get install -y gfortran libnl-3-dev libgfortran4 tcl libnl-3-200 \
        	pkg-config bzip2 gcc build-essential quilt dh-autoreconf
 
 KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-source-${KV} -k ${KERNEL_VERSION} --add-kernel-support --skip-distro-check "
-=======
-DIST=debian${Release}.0
-KERN="-k ${KERNEL_VERSION} -s /lib/modules/${KERNEL_VERSION}/build  --add-kernel-support --skip-distro-check "
-#  --distro=${DIST}"   ## it seems that this breaks on debian 10.  Go figure.
->>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
 fi
 
 if (echo ${LSB} | grep -q Ubuntu ); then
@@ -68,24 +52,13 @@ if ( cat ${DIST} | grep -q rhel ); then
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
 fi
 
-<<<<<<< HEAD
-=======
 echo Build options
 echo     "${KERN}"
->>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
 
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all 
-
-<<<<<<< HEAD
 ./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all --without-mlx5-ipsec
 
 rm -rf ${TARGET}/tmp/MLNX*
-=======
 rm -rf /tmp/MLNX*
-apt-get clean all
-apt-get update
->>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
-
 
 popd
 
