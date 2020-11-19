@@ -1,14 +1,31 @@
 #!/bin/bash
 
-apt-get update && sudo apt-get install -y \
-    build-essential \
-    uuid-dev \
-    libgpgme-dev \
-    squashfs-tools \
-    libseccomp-dev \
-    wget \
-    pkg-config \
-    git \
-    cryptsetup-bin
+# singularity version
+SVER=3.5.3
 
+
+GO=1.15.5
+ARCH=amd64
+OS=linux
+GOTAR=go${GO}.${OS}-${ARCH}.tar.gz
+
+# 1st install go to /usr/local
+tar -C /usr/local -xzf ${GOTAR}
+
+# 2nd append /usr/local/go/bin to path, and set GOPATH
+#export PATH=$PATH:/usr/local/go/bin
+#export GOPATH=${HOME}/go
+echo "export PATH=$PATH:/usr/local/go/bin" >> /etc/profile
+echo "export GOPATH=${HOME}/go" >> /etc/profile
+source /etc/profile
+
+# 3rd install dependency packages for building singularity
+apt-get update && sudo apt-get install -y \
+    fuse-overlayfs build-essential uuid-dev libgpgme-dev squashfs-tools \
+    libseccomp-dev wget pkg-config git cryptsetup-bin 
+
+# 4th start singularity build process
+tar -xzf singularity-${SVER}.tar.gz
+cd singularity
+./mconfig && make -C ./builddir && sudo make -C ./builddir install
 
