@@ -10,9 +10,15 @@ build    = $(addsuffix .build,$(packages))
 complete = $(addsuffix .complete,$(packages))
 
 
-all:   $(build) $(complete)
+all:   prepare $(build) $(complete) 
 
-$(build):
+prepare:
+	cp -fv prepare.bash ${TARGET}/root
+	chmod +x ${TARGET}/root/prepare.bash
+	chroot ${TARGET}  /root/prepare.bash
+	touch prepare
+
+$(build): prepare
 	for p in $(packages) ; do \
 	  touch $$p.build ;	\
 	done
@@ -28,6 +34,7 @@ clean:
 	for p in $(packages) ; do \
 	  rm -f $$p.build $$p.packages $$p.complete ; \
 	done
+	rm -f prepare
 
 ###################################################
 ## debugging targets

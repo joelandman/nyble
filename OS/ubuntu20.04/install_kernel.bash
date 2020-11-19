@@ -58,7 +58,7 @@ else
 		module-assistant 
 
 	#HWE=
-	HWE=-hwe-18.04
+	HWE=-hwe-20.04
 
 
 	export DEBIAN_FRONTEND=noninteractive ; chroot ${TARGET} apt-get -y \
