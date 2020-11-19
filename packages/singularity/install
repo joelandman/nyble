@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/bash -x
+
+cd /root/x
 
 # singularity version
 SVER=3.5.3
