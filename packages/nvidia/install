@@ -10,6 +10,7 @@ lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;prin
 pushd .
 cd /root/x
 
+<<<<<<< HEAD
 chmod +x ./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run
 
 if [[ ${Distributor_ID} == "Debian" ]]; then
@@ -20,6 +21,17 @@ else
 
 
 ./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-headers-${KERNEL_VERSION} --kernel-name=${KERNEL_VERSION}
+=======
+./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none \
+	--no-x-check \
+	--disable-nouveau \
+	--run-nvidia-xconfig \
+	--no-cc-version-check \
+	--install-libglvnd \
+	--dkms \
+	--kernel-source-path=/lib/modules/${KERNEL_VERSION}/build \
+	--kernel-name=${KERNEL_VERSION}
+>>>>>>> 5d79997dceb7740c996ce7c63a96425a90d5dc24
 
 fi
 
