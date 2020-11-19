@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/bin/bash -x
 
 MLNX_VER=5.0-2.1.8.0
 LSB=`lsb_release -a`
-lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
+lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;print ' > lsb.data
 . lsb.data
+ARCH=x86_64
+. /root/kernel.data
 
 KERN=
 
@@ -14,15 +16,20 @@ fi
 
 if (echo ${LSB} | grep -q Debian ); then
 DIST=debian$Release
-KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support --skip-distro-check --distro=ubuntu18.04"
+if [[ ${Release} == "10" ]]; then
+	DIST=debian${Release}.0
+fi
+apt-get install -y gfortran libnl-3-dev libgfortran4 tcl libnl-3-200 \
+	libnl-route-3-200 dkms libnl-route-3-dev tk  debhelper make  \
+       	pkg-config bzip2 gcc build-essential quilt dh-autoreconf
+
+KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-source-${KV} -k ${KERNEL_VERSION} --add-kernel-support --skip-distro-check "
 fi
 
 if (echo ${LSB} | grep -q Ubuntu ); then
 DIST=ubuntu$Release
 KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support"
 fi
-
-ARCH=x86_64
 
 MLNX_NAME=MLNX_OFED_LINUX-${MLNX_VER}-${DIST}-${ARCH}
 MLNX_TAR=${MLNX_NAME}.tgz
@@ -42,9 +49,11 @@ if ( cat ${DIST} | grep -q rhel ); then
 	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
 fi
 
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all 
 
 
+./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all --without-mlx5-ipsec
+
+rm -rf ${TARGET}/tmp/MLNX*
 
 
 popd

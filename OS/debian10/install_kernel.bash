@@ -57,5 +57,38 @@ else
 		install linux-base linux-image-amd64 initramfs-tools        \
 		libgtk2.0-dev libslang2-dev libperl-dev libpython-dev       \
 		libelf-dev python-dev libiberty-dev libdw-dev libbfd-dev    \
-		linux-source
+		module-assistant linux-libc-dev libelf-dev  	 	    \
+		linux-headers-amd64 linux-source
+	# linux-source
+
+	cp get_kver.bash ${TARGET}/root
+	KERNEL_VERSION=`${TARGET}/root/get_kver.bash ${TARGET}`
+        KV=`echo ${KERNEL_VERSION} | cut -d"." -f1,2`
+        echo NYBLE_KERNEL=${NYBLE_KERNEL}          > ${TARGET}/root/kernel.data
+        echo TARGET=${TARGET}                 >> ${TARGET}/root/kernel.data
+        echo KERNEL_URL=${KERNEL_URL}         >> ${TARGET}/root/kernel.data
+        echo KERNEL_VERSION=${KERNEL_VERSION}      >> ${TARGET}/root/kernel.data
+        echo KV=${KV}                         >> ${TARGET}/root/kernel.data
+        echo NK=${NYBLE_KERNEL}             >> ${TARGET}/root/kernel.data
+        echo DISTRO=${DISTRO}                 >> ${TARGET}/root/kernel.data
+        cp -fv ${TARGET}/root/kernel.data kernel.data
+        
+	# unpack kernel source, and prepare modules
+	pushd .
+	cd ${TARGET}/usr/src
+	tar -I /usr/bin/xz -xf linux-source-${KV}.tar.xz
+	rm -f linux-source-${KV}.tar.xz linux-patch-${KV}-rt.patch.xz
+	cd linux-source-${KV}
+	cp ../linux-headers-${KERNEL_VERSION}/.config .
+	make oldconfig
+	make modules_prepare
+	cp ../linux-headers-${KERNEL_VERSION}/Module.symvers .
+	popd
+
+	# remove the current build/source from /lib/modules/`uname -r`/ and replace them with the real
+	# one we just constructed
+	rm -f ${TARGET}/lib/modules/${KERNEL_VERSION}/build ${TARGET}/lib/modules/${KERNEL_VERSION}/source
+        chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/source
+	chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/build
+	#chroot ${TARGET} /root/prepare_modbuild.bash
 fi

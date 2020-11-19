@@ -1,14 +1,27 @@
 #!/bin/bash
 
-NVIDIA_DRV=440.64.00
+NVIDIA_DRV=450.80.02
+LSB=`lsb_release -a`
+lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;print ' > lsb.data
+. lsb.data
 
 . /root/kernel.data
 
 pushd .
 cd /root/x
 
+chmod +x ./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run
+
+if [[ ${Distributor_ID} == "Debian" ]]; then
+
+./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-source-${KV} --kernel-name=${KERNEL_VERSION}
+
+else
+
+
 ./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-headers-${KERNEL_VERSION} --kernel-name=${KERNEL_VERSION}
 
+fi
 
 popd
 
