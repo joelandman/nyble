@@ -1,20 +1,25 @@
 #!/bin/bash -x
 set -e
+#exit 0
 
-MLNX_VER=5.0-2.1.8.0
+MLNX_VER=5.2-2.2.0.0
 LSB=`/usr/bin/lsb_release -a`
 ARCH=x86_64
 
 # debian 10 (and likely 9) messes up
-lsb_release -a |  grep -v "Distributor ID"  | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' > lsb.data
-. lsb.data
-. /root/kernel.data
+lsb_release -a |\
+  grep Release  |\
+  perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' |\
+  ./filter |\
+ > lsb.data
+. ./lsb.data
+.  /root/kernel.data
 
 
 KERN=
 
 if [[ -e /etc/redhat-release ]]; then
-DIST=rhel$Release
+DIST=rhel${Release}
 KERN="-k ${KERNEL_VERSION}"
 fi
 

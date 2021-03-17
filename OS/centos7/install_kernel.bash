@@ -2,7 +2,8 @@
 set -e
 
 pwd
-. ./kernel.data
+
+[[ -e kernel.data ]] && . ./kernel.data
 
 echo TARGET       = $TARGET
 echo URL          = $KERNEL_URL
@@ -42,6 +43,16 @@ else
 	# base kernel install (NK ~= 1)
 	yum install -y --installroot=${TARGET} kernel kernel-devel kernel-headers   \
 			kernel-tools kernel-tools-libs kernel-tools-libs-devel
+	rpm -qa | grep kernel  | perl -lane 's/kernel-.*?(\d.*?).x86_64/$1/g;print' | sort | uniq > k.d
+	cat k.d | perl -lane 's/\.el7//g;print' > kv.d
+
+	# create the kernel.data
+	echo DISTRO=${DISTRO}	> ${TARGET}/root/meta.data
+	echo TARGET=${TARGET}
+	echo NK=0		>>${TARGET}/root/meta.data
+	echo KERNEL_URL=	>>${TARGET}/root/meta.data
+	echo KERNEL_VERSION=$(cat k.d) >>${TARGET}/root/meta.data
+	echo KV=$(cat kv.d | perl -lane 's/^(\d+\.\d+)(.*?)$/$1/g;print') >>${TARGET}/root/meta.data
 fi
 
 # common to all
