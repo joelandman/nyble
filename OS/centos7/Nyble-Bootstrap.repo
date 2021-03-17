@@ -1,6 +1,6 @@
 [nyble-bootstrap-base]
 name=CentOS-7-Base
-#baseurl=http://mirror.centos.org/centos/7/os/x86_64
+#baseurl=http://mirror.centos.org/centos-7/7/os/x86_64/
 baseurl=http://mirror.scalability.org/centos/7/os/x86_64/
 gpgcheck=0
 

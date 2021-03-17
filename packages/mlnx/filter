@@ -1,0 +1,10 @@
+#!/usr/bin/env perl
+
+use strict;
+my $in;
+
+while ( $in = <>) {
+ if ($in =~ /Release=\"(\d+\.{0,1}\d{0,})\.\d{0,}\"/) {
+  printf "Release=\"%s\"\n",$1;
+ }
+}
