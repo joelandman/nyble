@@ -19,20 +19,28 @@ lsb_release -a |\
 KERN=
 
 if [[ -e /etc/redhat-release ]]; then
+Release=`cat /etc/redhat-release | cut -d" " -f4 | cut -d "." -f1-2`
 DIST=rhel${Release}
+KERNEL_VERSION=`ls /boot/ | grep vmlinuz | cut -d"-" -f2-`
 KERN="-k ${KERNEL_VERSION}"
 fi
 
-if (echo ${LSB} | grep -q Debian ); then
-DIST=debian$Release
-if [[ ${Release} == "10" ]]; then
-	DIST=debian${Release}.0
-fi
+if [[ -e /etc/debian_version  ]]; then
+# assuming debian 10.x for now, simply provide the newest tarball, and
+# adjust the DIST below to reflect this
+DIST=debian10.5
+KERNEL_VERSION=`ls /boot | grep vmlinuz | cut -d"-" -f2-`
 apt-get install -y gfortran libnl-3-dev libgfortran4 tcl libnl-3-200 \
 	libnl-route-3-200 dkms libnl-route-3-dev tk  debhelper make  \
-       	pkg-config bzip2 gcc build-essential quilt dh-autoreconf
+       	pkg-config bzip2 gcc build-essential quilt dh-autoreconf     \
+       	module-assistant
 
-KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-source-${KV} -k ${KERNEL_VERSION} --add-kernel-support --skip-distro-check "
+module-assistant --non-inter prepare 
+pushd .
+cd /lib/modules/${KERNEL_VERSION}/build
+make prepare
+popd
+KERN="-k ${KERNEL_VERSION} -s /lib/modules/${KERNEL_VERSION}/build --add-kernel-support --skip-distro-check "
 fi
 
 if (echo ${LSB} | grep -q Ubuntu ); then
@@ -51,16 +59,20 @@ cd /root/x
 tar -zxvf ${MLNX_TAR}
 cd ${MLNX_NAME}
 
-if ( cat ${DIST} | grep -q rhel ); then
+if ( -e /etc/redhat-release ); then
+ echo "nameserver 1.1.1.1" >> /etc/resolv.conf
  yum -y install  pciutils numactl-libs gtk2 atk gcc-gfortran  \
 	tcsh openssl-libs expat lsof ethtool libstdc++ python \
-	make pkgconfig cairo libnl3 glib2 libmnl tcl tk
+	make pkgconfig cairo libnl3 glib2 libmnl tcl tk       \
+	fuse-libs systemd-libs pciutils-libs python make      \
+	pkgconfig libnl3 glib2 libmnl libusbx perl-Getopt-Long
 fi
 
 echo Build options
 echo     "${KERN}"
 
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  --force --all --without-mlx5-ipsec
+./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  \
+    --force --all --without-mlx5-ipsec  --skip-unsupported-devices-check
 
 rm -rf ${TARGET}/tmp/MLNX*
 rm -rf /tmp/MLNX*

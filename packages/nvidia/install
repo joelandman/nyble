@@ -18,8 +18,16 @@ if [[ ${Distributor_ID} == "Debian" ]]; then
 
 else
 
+yum -y install linux-firmware kernel-devel kernel-tools \
+    kernel-tools-libs-devel 
 
-./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none --no-x-check --disable-nouveau --run-nvidia-xconfig --no-cc-version-check --install-libglvnd --dkms --kernel-source-path=/usr/src/linux-headers-${KERNEL_VERSION} --kernel-name=${KERNEL_VERSION}
+KERNEL_VERSION=`ls /boot/ | grep vmlinuz | cut -d"-" -f2-`
+
+./NVIDIA-Linux-x86_64-${NVIDIA_DRV}.run -a --no-questions --ui=none \
+    --no-x-check --disable-nouveau --run-nvidia-xconfig \
+    --no-cc-version-check --install-libglvnd \
+    --kernel-source-path=/usr/src/kernels/${KERNEL_VERSION} \
+    --kernel-name=${KERNEL_VERSION}
 
 
 fi
