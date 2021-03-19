@@ -10,7 +10,8 @@ build    = $(addsuffix .build,$(packages))
 complete = $(addsuffix .complete,$(packages))
 
 
-all:   prepare $(build) $(complete) 
+all:   prepare $(build) $(complete)
+	echo "nameserver 1.1.1.1" >> ${TARGET}/etc/resolv.conf
 
 prepare:
 	cp -fv prepare.bash ${TARGET}/root

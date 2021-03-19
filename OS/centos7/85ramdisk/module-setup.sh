@@ -19,8 +19,9 @@ installkernel() {
 install() {
     inst_hook cmdline 29 "$moddir/parse-ramdisk.sh"
     inst_hook pre-mount 85 "$moddir/ramdiskroot.sh"
-    inst_multiple bzip2 pbzip2 pigz gzip tar mkfs.ext3 mke2fs mkfs.xfs mkfs.ext4 lsscsi lsmod df find which wc env md5sum
+    inst_multiple bzip2 pbzip2 pigz gzip zstd tar mkfs.ext3 mke2fs mkfs.xfs mkfs.ext4 lsscsi lsmod df find which wc env md5sum
     inst "$moddir/unpack.sh" /sbin/unpack_ramdisk_payload.sh
-    inst "/nyble_snap.tar.bz2" /nyble_snap.tar.bz2
+#    inst "/nyble_snap.tar.bz2" /nyble_snap.tar.bz2
+    inst "/nyble_snap.tar.zst" /nyble_snap.tar.zst
     dracut_need_initqueue
 }

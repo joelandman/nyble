@@ -54,10 +54,6 @@ ifeq (${COMP},pbzip2)
 COMP_BIN=$(shell which  pbzip2)
 COMP_EXT=bz2
 endif
-ifeq (${COMP},lbzip2)
-COMP_BIN=$(shell which  lbzip2)
-COMP_EXT=bz2
-endif
 ifeq (${COMP},gzip)
 COMP_BIN=$(shell which  gzip)
 COMP_EXT=gz
