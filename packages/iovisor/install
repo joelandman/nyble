@@ -1,7 +1,6 @@
 #!/bin/bash
-exit
-#http://hydandata.org/installing-ebpf-tools-bcc-and-ply-on-centos-6.0
-set -e
+BPFTRACE_VER=0.12.1
+
 NCPU=`getconf _NPROCESSORS_ONLN`
 
 if [[ -e /usr/bin/cmake ]]; then
@@ -17,43 +16,34 @@ fi
 pushd .
 cd /root/x
 
-# need libmnl-dev libcap-dev
 if [[ -e /etc/debian_version ]]; then
 
 	# install lsb-release
-	apt-get install -y lsb-release
-
-	# install bcc
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4052245BD4284CDD
-	echo "deb https://repo.iovisor.org/apt/$(lsb_release -cs) $(lsb_release -cs) main" > /etc/apt/sources.list.d/iovisor.list
-	apt-get update
-
-	wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-
-	cat <<EOF | sudo tee -a /etc/apt/sources.list.d/llvm.list
-# from https://apt.llvm.org/:
-deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main
-deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic main
-# 6.0
-deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6.0 main
-deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6.0 main
-EOF
         apt-get clean all
 	apt-get update
-        apt-get install -y cmake bison flex build-essential libelf-dev \
-			g++ git libelf-dev zlib1g-dev libfl-dev  \
-			clang-6.0 libclang-6.0-dev libclang-common-6.0-dev \
-			libclang1-6.0 libllvm6.0 llvm-6.0 llvm-6.0-dev llvm-6.0-runtime \
-			bcc-tools libbcc-examples linux-headers-$(uname -r) \
-			linux-tools-common vnstat 
-	git clone https://github.com/iovisor/bpftrace
-	cd bpftrace
-	mkdir build
-       	cd build
-       	cmake -DCMAKE_BUILD_TYPE=DEBUG ..
-	make -j8
-	make install
+	apt-get -y install libelf-dev llvm-11 clang-11 llvm-11-dev llvm-11-runtime llvm-11-tools \
+	   liblld-11  libclang-11-dev
 fi
+
+# build/install bcc first
+tar -zxf bcc-src-with-submodule.tar.gz
+pushd .
+cd bcc
+mkdir build
+cd build
+cmake  ..
+make -j$NCPU
+make install
+popd
+
+# build/install bpftrace
+tar -zxf v${BPFTRACE_VER}.tar.gz
+cd bpftrace-${BPFTRACE_VER}
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j$NCPU
+make install
 
 
 popd

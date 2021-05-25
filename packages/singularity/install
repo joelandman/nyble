@@ -3,10 +3,10 @@
 cd /root/x
 
 # singularity version
-SVER=3.5.3
+SVER=3.7.3
 
 
-GO=1.15.5
+GO=1.16.4
 ARCH=amd64
 OS=linux
 GOTAR=go${GO}.${OS}-${ARCH}.tar.gz

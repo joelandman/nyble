@@ -1,6 +1,6 @@
 #!/bin/bash -x
 set -e
-#exit 0
+exit 0
 
 MLNX_VER=5.2-2.2.0.0
 LSB=`/usr/bin/lsb_release -a`
