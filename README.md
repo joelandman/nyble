@@ -68,10 +68,10 @@ make DISTRO=debian10
 make DISTRO=debian9
 
 # # create a ubuntu20.04 based distro
-make DISTRO=debian20.04
+make DISTRO=ubuntu20.04
 
 # # create a ubuntu18.04 based distro
-make DISTRO=debian18.04
+make DISTRO=ubuntu18.04
 
 # # create a centos7 based distro
 make DISTRO=centos7
