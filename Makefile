@@ -103,11 +103,11 @@ endif
 
 	# place scripts where they need to be for startup
 	mkdir -p ${TARGET}/opt/nyble/bin
-	cp -fv scripts/*.pl scripts/spark  ${TARGET}/opt/nyble/bin
+	cp -fv scripts/*   ${TARGET}/opt/nyble/bin
 	chmod +x ${TARGET}/opt/nyble/bin/*.pl
-	chroot ${TARGET} ln -s /opt/nyble/bin/lsnet.pl /usr/bin/lsnet.pl
-	chroot ${TARGET} ln -s /opt/nyble/bin/lsbond.pl /usr/bin/lsbond.pl
-	chroot ${TARGET} ln -s /opt/nyble/bin/lsbr.pl /usr/bin/lsbr.pl
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsnet /usr/bin/lsnet
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsbond /usr/bin/lsbond
+	chroot ${TARGET} ln -s /opt/nyble/bin/lsbr /usr/bin/lsbr
 	chroot ${TARGET} ln -s /opt/nyble/bin/pcilist.pl /usr/bin/pcilist.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/lsint.pl /usr/bin/lsint.pl
 	chroot ${TARGET} ln -s /opt/nyble/bin/spark /usr/bin/spark
@@ -197,7 +197,7 @@ clean:
 	rm -f osinst finalizebase fb_* osinst_* ramdisk_build_* /mnt/nyble_snap.tar* \
 		ramdisk_build_* kernel.data usbkey
 	cd packages ; $(MAKE) clean
-	$(shell umount ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
+	$(shell umount ${TARGET}/dev/pts ${TARGET}/dev ${TARGET}/proc ${TARGET}/sys ${TARGET} )
 	$(shell if [[ -e ${LODEV} ]]; then losetup -d ${LODEV} ; fi )
 	rm -f lodev.data
 	umount -l -f ${TARGET}

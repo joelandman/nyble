@@ -1,63 +1,28 @@
 #!/bin/bash -x
+
 set -e
-exit 0
 
-MLNX_VER=5.2-2.2.0.0
-LSB=`/usr/bin/lsb_release -a`
-ARCH=x86_64
+# use distro OFED
 
-# debian 10 (and likely 9) messes up
-lsb_release -a |\
-  grep Release  |\
-  perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;print' |\
-  ./filter |\
- > lsb.data
-. ./lsb.data
-.  /root/kernel.data
-
-
-KERN=
-
-if [[ -e /etc/redhat-release ]]; then
-Release=`cat /etc/redhat-release | cut -d" " -f4 | cut -d "." -f1-2`
-DIST=rhel${Release}
-KERNEL_VERSION=`ls /boot/ | grep vmlinuz | cut -d"-" -f2-`
-KERN="-k ${KERNEL_VERSION}"
-fi
 
 if [[ -e /etc/debian_version  ]]; then
-# assuming debian 10.x for now, simply provide the newest tarball, and
-# adjust the DIST below to reflect this
-DIST=debian10.5
-KERNEL_VERSION=`ls /boot | grep vmlinuz | cut -d"-" -f2-`
-apt-get install -y gfortran libnl-3-dev libgfortran4 tcl libnl-3-200 \
-	libnl-route-3-200 dkms libnl-route-3-dev tk  debhelper make  \
-       	pkg-config bzip2 gcc build-essential quilt dh-autoreconf     \
-       	module-assistant
-
-module-assistant --non-inter prepare 
-pushd .
-cd /lib/modules/${KERNEL_VERSION}/build
-make prepare
-popd
-KERN="-k ${KERNEL_VERSION} -s /lib/modules/${KERNEL_VERSION}/build --add-kernel-support --skip-distro-check "
+	apt-get install -y 	\
+		ibutils 	\
+		ibverbs-utils	\
+		infiniband-diags \
+		rdmacm-utils	\
+		rdma-core	\
+		libibumad-dev	\
+		libibverbs-dev	\
+		libibmad-dev	\
+		librdmacm-dev	\
+		perftest
+				
 fi
-
-if (echo ${LSB} | grep -q Ubuntu ); then
-DIST=ubuntu$Release
-KERN="-k ${KERNEL_VERSION} -s /usr/src/linux-headers-${KERNEL_VERSION} --add-kernel-support"
-fi
-
-MLNX_NAME=MLNX_OFED_LINUX-${MLNX_VER}-${DIST}-${ARCH}
-MLNX_TAR=${MLNX_NAME}.tgz
-
 
 
 pushd .
 cd /root/x
-
-tar -zxvf ${MLNX_TAR}
-cd ${MLNX_NAME}
 
 if ( -e /etc/redhat-release ); then
  echo "nameserver 1.1.1.1" >> /etc/resolv.conf
@@ -68,14 +33,6 @@ if ( -e /etc/redhat-release ); then
 	pkgconfig libnl3 glib2 libmnl libusbx perl-Getopt-Long
 fi
 
-echo Build options
-echo     "${KERN}"
-
-./mlnxofedinstall --skip-distro-check --distro ${DIST}  -vvv  ${KERN}  \
-    --force --all --without-mlx5-ipsec  --skip-unsupported-devices-check
-
-rm -rf ${TARGET}/tmp/MLNX*
-rm -rf /tmp/MLNX*
 
 popd
 
