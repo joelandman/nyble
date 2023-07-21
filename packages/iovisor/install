@@ -1,5 +1,4 @@
 #!/bin/bash
-BPFTRACE_VER=0.12.1
 
 NCPU=`getconf _NPROCESSORS_ONLN`
 
@@ -21,35 +20,67 @@ if [[ -e /etc/debian_version ]]; then
 	# install lsb-release
         apt-get clean all
 	apt-get update
-	apt-get -y install libelf-dev llvm-11 clang-11 llvm-11-dev llvm-11-runtime llvm-11-tools \
-	   liblld-11  libclang-11-dev
+	apt-get -y install \
+	    bison \
+  cmake \
+  flex \
+  g++ \
+  git \
+  libelf-dev \
+  zlib1g-dev \
+  libfl-dev \
+  systemtap-sdt-dev \
+  binutils-dev \
+  libcereal-dev \
+  llvm-dev \
+  llvm-runtime \
+  libclang-dev \
+  clang \
+  libpcap-dev \
+  libgtest-dev \
+  libgmock-dev \
+  asciidoctor 
 fi
 
-# build/install bcc first
-tar -zxf bcc-src-with-submodule.tar.gz
+# build/install libbpf
+git clone https://github.com/libbpf/libbpf.git
 pushd .
-cd bcc
+cd libbpf/src
+make -j
+make install
+popd 
+
+# build/install dwarves for updated pahole info (needed for bpftrace)
+tar -zxf dwarves-snap.tar.gz
+pushd .
+cd dwarves
 mkdir build
 cd build
-cmake  ..
-make -j$NCPU
-make install
+cmake -D__LIB=lib ..
+make -j install
 popd
+
+# build/install bcc 
+apt-get -y install arping bison clang-format cmake dh-python \
+  dpkg-dev pkg-kde-tools ethtool flex inetutils-ping iperf \
+  libbpf-dev libclang-dev libclang-cpp-dev libedit-dev libelf-dev \
+  libfl-dev libzip-dev linux-libc-dev llvm-dev libluajit-5.1-dev \
+  luajit python3-netaddr python3-pyroute2 python3-setuptools python3
+git clone https://github.com/iovisor/bcc.git
+pushd .
+mkdir bcc/build; cd bcc/build
+cmake ..
+make -j
+make install
+popd .
+
 
 # build/install bpftrace
-tar -zxf v${BPFTRACE_VER}.tar.gz
-cd bpftrace-${BPFTRACE_VER}
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j$NCPU
+git clone https://github.com/iovisor/bpftrace --recurse-submodules
+mkdir bpftrace/build; cd bpftrace/build;
+../build-libs.sh
+cmake -DCMAKE_BUILD_TYPE=Release  ..
+make -j
 make install
 
-
 popd
-
-
-
-
-
-

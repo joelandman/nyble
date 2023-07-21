@@ -3,10 +3,8 @@
 cd /root/x
 
 # singularity version
-SVER=3.7.3
 
-
-GO=1.16.4
+GO=1.20.4
 ARCH=amd64
 OS=linux
 GOTAR=go${GO}.${OS}-${ARCH}.tar.gz
@@ -26,8 +24,20 @@ apt-get update && sudo apt-get install -y \
     fuse-overlayfs build-essential uuid-dev libgpgme-dev squashfs-tools \
     libseccomp-dev wget pkg-config git cryptsetup-bin 
 
-# 4th start singularity build process
-tar -xzf singularity-${SVER}.tar.gz
+apt-get install -y \
+    build-essential \
+    libseccomp-dev \
+    libglib2.0-dev \
+    pkg-config \
+    squashfs-tools \
+    cryptsetup \
+    crun \
+    uidmap
+
+
+git clone --recurse-submodules https://github.com/sylabs/singularity.git
 cd singularity
+git checkout --recurse-submodules v3.11.4
+
 ./mconfig && make -C ./builddir && sudo make -C ./builddir install
 
