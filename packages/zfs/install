@@ -8,7 +8,7 @@ lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;prin
 ARCH=x86_64
 
 
-ZFS_VER=2.1.12
+ZFS_VER=2.2.2
 ZFS_NAME=zfs-${ZFS_VER}
 ZFS_TAR=${ZFS_NAME}.tar.gz
 
@@ -18,23 +18,22 @@ pushd .
 cd /root/x
 
 if [[ -e /etc/debian_release ]]; then
-m-a prepare
+m-a prepare -l ${KERNEL_VERSION} --non-inter
 apt-get install -y libaio-dev libudev-dev libudev0
 
-else
-
-pushd .
-cd /lib/modules/${KERNEL_VERSION}/source
-make modules_prepare
-make headers_install
-popd
 fi
+
+#pushd .
+#cd /lib/modules/${KERNEL_VERSION}/source
+#make modules_prepare
+#make headers_install
+#popd
 
 tar -zxvf ${ZFS_TAR}
 cd ${ZFS_NAME}
 
 if (echo ${LSB} | grep -q Debian ); then
-./configure --with-linux=/usr/src/linux-source-${KV}
+./configure #--with-linux=/lib/modules/${KERNEL_VERSION}/build 
 else
 ./configure
 fi
