@@ -84,22 +84,23 @@ else
         cp -fv ${TARGET}/root/kernel.data kernel.data
         
 	# unpack kernel source, and prepare modules
-	pushd .
-	cd ${TARGET}/usr/src
-	tar -I /usr/bin/xz -xf linux-source-${KV}.tar.xz
-	rm -f linux-source-${KV}.tar.xz linux-patch-${KV}-rt.patch.xz
-	cd linux-source-${KV}
-	make mrproper
-	cp ../linux-headers-${KERNEL_VERSION}/.config .
-	make oldconfig
-	make modules_prepare
-	cp ../linux-headers-${KERNEL_VERSION}/Module.symvers .
-	popd
+	#pushd .
+	#cd ${TARGET}/usr/src
+	#tar -I /usr/bin/xz -xf linux-source-${KV}.tar.xz
+	#rm -f linux-source-${KV}.tar.xz linux-patch-${KV}-rt.patch.xz
+	#cd linux-source-${KV}
+	#make mrproper
+	#cp ../linux-headers-${KERNEL_VERSION}/.config .
+	#make oldconfig
+	#make modules_prepare
+	#cp ../linux-headers-${KERNEL_VERSION}/Module.symvers .
+	chroot ${TARGET} m-a prepare --non-inter -l ${KERNEL_VERSION}
+	#popd
 
 	# remove the current build/source from /lib/modules/`uname -r`/ and replace them with the real
 	# one we just constructed
-	rm -f ${TARGET}/lib/modules/${KERNEL_VERSION}/build ${TARGET}/lib/modules/${KERNEL_VERSION}/source
-        chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/source
-	chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/build
+	#rm -f ${TARGET}/lib/modules/${KERNEL_VERSION}/build ${TARGET}/lib/modules/${KERNEL_VERSION}/source
+        #chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/source
+	#chroot ${TARGET} ln -s /usr/src/linux-source-${KV}  /lib/modules/${KERNEL_VERSION}/build
 	#chroot ${TARGET} /root/prepare_modbuild.bash
 fi
