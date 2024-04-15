@@ -89,7 +89,7 @@ ifndef PHYSICAL
 	echo TARGET = ${TARGET}
 	mkdir -p ${TARGET}
 	touch /mnt/nyble_snap.tar
-	mount -o size=24g -t tmpfs none ${TARGET}
+	mount -o size=32g -t tmpfs none ${TARGET}
 endif
 	touch ramdisk_build_1
 
@@ -124,19 +124,6 @@ ifneq ($(DISTRO),centos7)
 endif
 	rm -f /mnt/${NYBLE_SNAP}
 
-ifeq ($(DISTRO),debian9)
-	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
-endif
-ifeq ($(DISTRO),debian10)
-	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
-endif
-ifeq ($(DISTRO),ubuntu18.04)
-	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
-ifeq ($(ONLYCORE),1)
-	rm -rf ${TARGET}/var/cache/apt ${TARGET}/var/lib/apt	    \
-				 ${TARGET}/usr/share/doc
-endif
-endif
 ifeq ($(DISTRO),ubuntu20.04)
 	rm -rf ${TARGET}/usr/games ${TARGET}/usr/local/games
 ifeq ($(ONLYCORE),1)

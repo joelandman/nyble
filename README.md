@@ -39,13 +39,12 @@ larger files at this moment.
 ### Build variables
 
 Several important variables used for the build are
-* DISTRO : which distribution you will use as the base of your image.  Current choices are debian9, debian10, ubuntu18.04, ubuntu20.04, and centos7.  Centos8 is in process.
+* DISTRO : which distribution you will use as the base of your image.  Current choices are debian12, debian11, ubuntu18.04, ubuntu20.04, ubuntu22.04, Rocky9.  Rocky8 is in process.
 
 * TARGET : top level scratch directory for building the image.  Defaults to ```/mnt/root```.
 
 * NYBLE_KERNEL : 0 or 1, with 0 indicating that the build should use the distro
-provided default kernel.  This does mean you can build these images to be almost entirely based upon the distro itself, with minor modifications to some of the
-startup scripts.  These modifications are necessary to run as a ramdisk booted OS.
+provided default kernel.  This does mean you can build these images to be almost entirely based upon the distro itself, with minor modifications to some of the startup scripts.  These modifications are necessary to run as a ramdisk booted OS.
 The system will not likely function without them.
 
 ### Build configuration outside of variables
@@ -61,24 +60,25 @@ package, and feature installation.
 In short
 
 ```
-# # create a debian10 based distro
-make DISTRO=debian10
+# # create a debian12 based distro
+make DISTRO=debian12
 
-# # create a debian9 based distro
-make DISTRO=debian9
+# # create a debian11 based distro
+make DISTRO=debian11
 
 # # create a ubuntu20.04 based distro
 make DISTRO=ubuntu20.04
 
-# # create a ubuntu18.04 based distro
-make DISTRO=ubuntu18.04
+# # create a ubuntu22.04 based distro
+make DISTRO=ubuntu22.04
 
-# # create a centos7 based distro
-make DISTRO=centos7
+# # create a Rocky9 based distro
+make DISTRO=rocky9
 
 
 # # install to a physical disk/raid/device you have mounted at /mnt/root
 make PHYSICAL=1 [DISTRO=...]
+# note this isn't working right now
 
 ```
 
@@ -109,17 +109,6 @@ EOF
 Of course, modify your kernel version in the initrd and kernel lines to suit what you have built.
 
 
-Note for Centos7 builds: you will need to copy the contents of ```OS/centos7/rpm-gpg-keys``` to
-```/etc/pki/rpm-gpg/```
-
-```
-	mkdir -p /etc/pki/rpm-gpg/
-	cp -v OS/centos7/rpm-gpg-keys/* /etc/pki/rpm-gpg/
-```
-
-or you will run into a yum bug, whereby it has keys installed in the image build TARGET,
-but the yum command cannot see them.  Working on a mechanism to resolve this.
-
 You can execute up to a specific target, for example ```fb_final``` by running
   ```make fb_final```.  You can continue the image build process by running ```make```.
 
@@ -127,10 +116,10 @@ You can inspect any variable in the Makefile, by using ```make print-VARIABLE_NA
 
 ```
 # make print-DISTRO
-DISTRO = centos7
+DISTRO = debian12
 
-# make DISTRO=debian9 print-DISTRO
-DISTRO = debian9
+# make DISTRO=debian11 print-DISTRO
+DISTRO = debian11
 
 # make print-TARGET
 TARGET = /mnt/root
@@ -139,10 +128,10 @@ TARGET = /mnt/root
 TARGET = /outerspace
 
 # make print-NYBLE_KERNEL
-NYBLE_KERNEL = 1
-
-# make NYBLE_KERNEL=0 print-NYBLE_KERNEL
 NYBLE_KERNEL = 0
+
+# make NYBLE_KERNEL=1 print-NYBLE_KERNEL
+NYBLE_KERNEL = 1
 ```
 
 
@@ -207,7 +196,7 @@ to the make command.
 
   ```make PACKAGES=0```
 
-Packages include Nvidia, Mellanox drivers, zfs subsystem, and a few related tools.
+Packages include zfs subsystem, and a few related tools.  
 
 The bootable kernel and initramfs will be located in /mnt/root/boot.  Copy them
 to the appropriate location for serving using iPXE and http on your machine.
