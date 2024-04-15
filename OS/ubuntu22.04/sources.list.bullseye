@@ -1,0 +1,13 @@
+deb http://mirrors.lug.mtu.edu/debian/ bullseye main non-free contrib
+deb-src http://mirrors.lug.mtu.edu/debian/ bullseye main non-free contrib
+
+deb http://deb.debian.org/debian-security bullseye-security main contrib non-free
+deb-src http://deb.debian.org/debian-security bullseye-security main contrib non-free
+
+# bullseye-updates, to get updates before a point release is made;
+# see https://www.debian.org/doc/manuals/debian-reference/ch02.en.html#_updates_and_backports
+deb http://mirrors.lug.mtu.edu/debian/ bullseye-updates main contrib non-free
+deb-src http://mirrors.lug.mtu.edu/debian/ bullseye-updates main contrib non-free
+
+deb http://deb.debian.org/debian bullseye-backports main contrib non-free
+deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free
