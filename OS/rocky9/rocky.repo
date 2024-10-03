@@ -221,7 +221,7 @@ mirrorlist=https://mirrors.rockylinux.org/mirrorlist?arch=$basearch&repo=extras-
 #baseurl=http://dl.rockylinux.org/$contentdir/$releasever/extras/$basearch/os/
 gpgcheck=1
 enabled=1
-countme=1
+countme=0
 metadata_expire=6h
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
 
