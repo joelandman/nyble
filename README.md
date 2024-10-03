@@ -72,6 +72,9 @@ make DISTRO=ubuntu20.04
 # # create a ubuntu22.04 based distro
 make DISTRO=ubuntu22.04
 
+# # create a ubuntu24.04 based distro
+make DISTRO=ubuntu24.04
+
 # # create a Rocky9 based distro
 make DISTRO=rocky9
 
