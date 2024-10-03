@@ -1,5 +1,5 @@
 #!/bin/bash -x
-
+exit 0
 set -e
 
 # use distro OFED
