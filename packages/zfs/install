@@ -1,5 +1,5 @@
 #!/bin/bash -x
-#exit 0
+exit 0
 . /root/kernel.data
 
 LSB=`lsb_release -a`
@@ -8,7 +8,7 @@ lsb_release -a | perl -ane '$_=~s/:\s+(.*?)$/=\"$1\"/g;$_ =~ s/\ ID=/_ID=/g;prin
 ARCH=x86_64
 
 
-ZFS_VER=2.2.2
+ZFS_VER=2.2.6
 ZFS_NAME=zfs-${ZFS_VER}
 ZFS_TAR=${ZFS_NAME}.tar.gz
 
