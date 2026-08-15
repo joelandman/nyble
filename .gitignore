@@ -1,0 +1,15 @@
+# Package tarballs are fetched from upstream on demand and verified against
+# packages/manifest.txt. See scripts/fetch-source.sh.
+/packages/*/*.tar.gz
+/packages/*/*.tar.xz
+/packages/*/*.tar.bz2
+/packages/*/*.tgz
+/packages/*/*.run
+/extra/*.tar.gz
+/extra/*.tar.xz
+
+# Build stamps produced by packages/Makefile
+/packages/fetch
+/packages/prepare
+/packages/*.build
+/packages/*.complete

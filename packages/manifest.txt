@@ -1,0 +1,22 @@
+# Upstream package manifest.
+#
+# Large package tarballs are not stored in this repository; they are fetched
+# from upstream on demand and verified against the checksums below. See
+# scripts/fetch-source.sh, which the packages/Makefile 'fetch' target runs
+# before anything is copied into the image.
+#
+# Format, whitespace separated:
+#
+#     <path-relative-to-repo-root>  <sha256>  <url>
+#
+# Blank lines and lines beginning with '#' are ignored.
+#
+# When bumping a package version, update the version in that package's install
+# script and replace its line here. Take the checksum from upstream where they
+# publish one; otherwise download the tarball and run 'sha256sum' on it.
+#
+# Note that packages/<pkg>/install runs inside the chroot, which has no network
+# access. Tarballs must therefore be fetched on the host first, which is what
+# the fetch target does.
+
+packages/zfs/zfs-2.2.6.tar.gz  c92e02103ac5dd77bf01d7209eabdca55c7b3356aa747bb2357ec4222652a2a7  https://github.com/openzfs/zfs/releases/download/zfs-2.2.6/zfs-2.2.6.tar.gz

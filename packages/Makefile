@@ -13,7 +13,16 @@ complete = $(addsuffix .complete,$(packages))
 all:   prepare $(build) $(complete)
 	echo "nameserver 1.1.1.1" >> ${TARGET}/etc/resolv.conf
 
-prepare:
+### Large tarballs are not stored in the repo; fetch and checksum them on the
+### host before anything is copied into the image. The install scripts run
+### inside the chroot, which has no network access. See packages/manifest.txt.
+### Stamped like the other targets here, so prepare is not considered out of
+### date on every run. Editing the manifest re-runs the fetch.
+fetch:	manifest.txt
+	cd .. && scripts/fetch-source.sh --all
+	touch fetch
+
+prepare: fetch
 	cp -fv prepare.bash ${TARGET}/root
 	chmod +x ${TARGET}/root/prepare.bash
 	chroot ${TARGET}  /root/prepare.bash
@@ -35,7 +44,7 @@ clean:
 	for p in $(packages) ; do \
 	  rm -f $$p.build $$p.packages $$p.complete ; \
 	done
-	rm -f prepare
+	rm -f prepare fetch
 
 ###################################################
 ## debugging targets

@@ -3,3 +3,8 @@
 *.gz filter=lfs diff=lfs merge=lfs -text
 *.bz2 filter=lfs diff=lfs merge=lfs -text
 *.run filter=lfs diff=lfs merge=lfs -text
+
+# Large package tarballs are no longer stored in this repository; they are
+# fetched from upstream and checksummed at build time (packages/manifest.txt).
+# The rules above remain as a safety net so that anything large which does get
+# committed lands in LFS rather than bloating the git history.
